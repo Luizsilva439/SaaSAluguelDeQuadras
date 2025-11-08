@@ -1,13 +1,15 @@
 import Title from '../../components/Title';
 import New_buttom from '../../components/New_buttom';
+import TextLink from '../../components/TextLink';
+
 import { useState } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, TextInput, Pressable, Text } from "react-native";
+import { View, TextInput } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { colors } from '../../constants/colors';
 import { styles } from './styles';
 import { useNavigation } from '@react-navigation/native';
-import TextLink from '../../components/TextLink';
+
 
 
 export default function Auth() {
@@ -24,7 +26,7 @@ export default function Auth() {
       <StatusBar style="light" />
       <View style={styles.container}>
         <View style={styles.name_project}>
-          <Title title="Nome Projeto" size={18} />
+          <Title title="PlayTime" size={18} />
         </View>
         <View style={styles.content}>
           <Title
@@ -46,7 +48,7 @@ export default function Auth() {
               secureTextEntry={true}
             />
 
-            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={handleLogin} />
+            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={() => (navigation as any).navigate('Main')} isClicked={true} />
 
             <View style={styles.link}>
               <TextLink title='Esqueceu sua senha?'/>

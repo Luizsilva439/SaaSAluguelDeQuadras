@@ -6,7 +6,7 @@ import StackNavigator from './src/navigation/stack/StackNavigator';
 export default function App() {
   return (
     <NavigationContainer>
-      <StackNavigator />
+      <StackNavigator/>
     </NavigationContainer>
   );
 }
