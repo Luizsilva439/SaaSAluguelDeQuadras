@@ -2,7 +2,7 @@ import Title from '../../components/Title';
 import New_buttom from '../../components/New_buttom';
 import TextLink from '../../components/TextLink';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, TextInput } from "react-native";
 import { StatusBar } from "expo-status-bar";
@@ -15,11 +15,23 @@ import { useNavigation } from '@react-navigation/native';
 export default function Auth() {
 
   const navigation = useNavigation();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isClicked, setIsClicked] = useState<boolean>(false)
+
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
 
   function handleLogin() {
     setIsLoading(true);
   }
+
+  useEffect(() => {
+    if(email != '' && password?.length >= 5){
+      setIsClicked(true);
+    }else{
+      setIsClicked(false);
+    }
+  })
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,6 +51,8 @@ export default function Auth() {
               style={styles.input}
               placeholder='Email'
               placeholderTextColor={colors.text}
+              value={email}
+              onChangeText={setEmail}
             />
 
             <TextInput
@@ -46,12 +60,14 @@ export default function Auth() {
               placeholder='Senha'
               placeholderTextColor={colors.text}
               secureTextEntry={true}
+              value={password}
+              onChangeText={setPassword}
             />
 
-            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={() => (navigation as any).navigate('Main')} isClicked={true} />
+            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={() => (navigation as any).navigate('Main')} isClicked={isClicked} />
 
             <View style={styles.link}>
-              <TextLink title='Esqueceu sua senha?'/>
+              <TextLink title='Esqueceu sua senha?' />
             </View>
           </View>
 
