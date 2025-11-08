@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TextInput, Platform, ToastAndroid } from "react-native";
+import { View, Pressable, TextInput, Platform, ToastAndroid } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from './styles';
@@ -9,6 +9,7 @@ import { colors } from "../../constants/colors";
 import Checkbox from "expo-checkbox";
 import { useEffect, useState } from "react";
 import New_buttom from "../../components/New_buttom";
+import TextLink from "../../components/TextLink";
 
 
 export default function SignUp() {
@@ -27,12 +28,7 @@ export default function SignUp() {
     });
 
     function handleSignUp() {
-        if (!isChecked){
-            Platform.OS === 'android' ? ToastAndroid.show('Você precisa aceitar os termos de serviço', ToastAndroid.SHORT)
-            : alert('Você precisa aceitar os termos de serviço');
-        } else {
-            setIsLoading(true);
-        }
+        setIsLoading(true);
     }
 
     function checking() {
@@ -102,6 +98,12 @@ export default function SignUp() {
                     </Pressable>
 
                     <New_buttom title="Cadastrar" isLoading={isLoading} onPress={() => handleSignUp()} isClicked={isClicked} />
+                </View>
+
+                <View style={styles.facaLogin}>
+                    <TextLink
+                    title="Ja tem uma conta? Faça login"
+                    onPress={() => (navigation as any).replace('Auth')}/>
                 </View>
 
             </View>
