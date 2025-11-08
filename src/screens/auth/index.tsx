@@ -64,7 +64,7 @@ export default function Auth() {
               onChangeText={setPassword}
             />
 
-            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={() => (navigation as any).navigate('Main')} isClicked={isClicked} />
+            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={() => (navigation as any).replace('Main')} isClicked={isClicked} />
 
             <View style={styles.link}>
               <TextLink title='Esqueceu sua senha?' />
