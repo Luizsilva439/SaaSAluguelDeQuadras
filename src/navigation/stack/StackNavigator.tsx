@@ -14,7 +14,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function StackNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
 
       <Stack.Screen
         name="Auth"
