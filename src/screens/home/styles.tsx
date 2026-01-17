@@ -1,16 +1,9 @@
-import { StyleSheet } from 'react-native'; 
+import { StyleSheet } from 'react-native';
+import { colors } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
-    header: {
-        marginLeft: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 16
-    },
-    header_content: {
+    mainContent: {
         flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginHorizontal: 20
+        backgroundColor: colors.background
     }
 })
