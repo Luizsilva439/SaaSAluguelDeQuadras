@@ -4,7 +4,8 @@ export const styles = StyleSheet.create({
     header: {
         marginLeft: 20,
         flexDirection: 'row',
-        alignItems: 'center'
+        alignItems: 'center',
+        marginTop: 16
     },
     header_content: {
         flex: 1,

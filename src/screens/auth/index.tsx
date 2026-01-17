@@ -9,6 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import { colors } from '../../constants/colors';
 import { styles } from './styles';
 import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../constants/strings';
 
 
 
@@ -38,7 +39,7 @@ export default function Auth() {
       <StatusBar style="light" />
       <View style={styles.container}>
         <View style={styles.name_project}>
-          <Title title="PlayTime" size={18} />
+          <Title title={strings.projectName} size={18} />
         </View>
         <View style={styles.content}>
           <Title

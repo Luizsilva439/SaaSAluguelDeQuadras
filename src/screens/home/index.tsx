@@ -5,6 +5,7 @@ import ProfileComponent from "../../components/ProfileComponent";
 import { styles } from "./styles";
 import Title from "../../components/Title";
 import { Ionicons } from "@expo/vector-icons";
+import { strings } from "../../constants/strings";
 
 export default function Home() {
     return (
@@ -17,7 +18,7 @@ export default function Home() {
                     />
                     <View style={styles.header_content}>
                         <Title
-                        title="Nome do projeto"
+                        title={strings.projectName}
                         size={20}
                         />
 
