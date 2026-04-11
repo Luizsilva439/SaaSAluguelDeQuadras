@@ -10,27 +10,47 @@ import Checkbox from "expo-checkbox";
 import { useEffect, useState } from "react";
 import New_buttom from "../../components/New_buttom";
 import TextLink from "../../components/TextLink";
+import { registrar } from "./supabase/functions";
 
 
 export default function SignUp() {
 
     const navigation = useNavigation();
+
+    // Informações do formulário
+    const [nome, setNome] = useState('');
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+    const [confirmarSenha, setConfirmarSenha] = useState('');
+
+
     const [isChecked, setIsChecked] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isClicked, setIsClicked] = useState(false);
+    const [passwordsMatch, setPasswordsMatch] = useState(true);
 
     useEffect(() => {
-        if (isChecked) {
-            setIsClicked(true);
-        }  else {
-            setIsClicked(false);
+
+        validateAndSignUp();
+
+        // Verificar senha e confirmacao de senha
+        if (senha !== confirmarSenha) {
+            setPasswordsMatch(false);
+        } else {
+            setPasswordsMatch(true);
         }
     });
 
-    function handleSignUp() {
-        setIsLoading(true);
+    //vlidar campos e criar conta
+    function validateAndSignUp() {
+        if (!nome || !email || !senha || !passwordsMatch || !isChecked) {
+            setIsClicked(false);
+        } else {
+            setIsClicked(true);
+        }
     }
 
+    // Alterna o estado do checkbox
     function checking() {
         if (isChecked) {
             setIsChecked(false);
@@ -38,6 +58,17 @@ export default function SignUp() {
             setIsChecked(true);
         }
     }
+     
+
+    function handleSignUp() {
+        setIsLoading(true);
+        registrar({ email, senha, nome })
+            .finally(() => {
+                setIsLoading(false);
+                (navigation as any).replace('Splash');
+            });
+    }
+
 
     return (
         <SafeAreaView style={styles.container}>
@@ -57,6 +88,8 @@ export default function SignUp() {
                             style={styles.input}
                             placeholder='Seu nome'
                             placeholderTextColor={colors.text}
+                            value={nome}
+                            onChangeText={setNome}
                         />
                     </View>
 
@@ -66,6 +99,8 @@ export default function SignUp() {
                             style={styles.input}
                             placeholder='Digite sue email'
                             placeholderTextColor={colors.text}
+                            value={email}
+                            onChangeText={setEmail}
                         />
                     </View>
 
@@ -76,16 +111,20 @@ export default function SignUp() {
                             placeholder='Digite sua senha'
                             secureTextEntry={true}
                             placeholderTextColor={colors.text}
+                            value={senha}
+                            onChangeText={setSenha}
                         />
                     </View>
 
                     <View style={{ gap: 8 }}>
                         <Title title="Confirme a senha" size={16} />
                         <TextInput
-                            style={styles.input}
+                            style={passwordsMatch ? styles.input : [styles.inputNotMatch]}
                             placeholder='Digite novamente sua senha'
                             secureTextEntry={true}
                             placeholderTextColor={colors.text}
+                            value={confirmarSenha}
+                            onChangeText={setConfirmarSenha}
                         />
                     </View>
                     <Pressable style={styles.checkboxContainer} onPress={() => checking()}>

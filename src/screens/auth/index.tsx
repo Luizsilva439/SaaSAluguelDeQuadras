@@ -10,6 +10,7 @@ import { colors } from '../../constants/colors';
 import { styles } from './styles';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../constants/strings';
+import { login } from './supabase/supabase';
 
 
 
@@ -24,6 +25,11 @@ export default function Auth() {
 
   function handleLogin() {
     setIsLoading(true);
+    login(email, password)
+      .finally(() => {
+        setIsLoading(false);
+        (navigation as any).replace('Splash');
+      });
   }
 
   useEffect(() => {
@@ -65,7 +71,7 @@ export default function Auth() {
               onChangeText={setPassword}
             />
 
-            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={() => (navigation as any).replace('Main')} isClicked={isClicked} />
+            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={() => handleLogin()} isClicked={isClicked} />
 
             <View style={styles.link}>
               <TextLink title='Esqueceu sua senha?' />

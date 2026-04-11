@@ -28,6 +28,16 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: colors.text
   },
+  inputNotMatch: {
+    backgroundColor: colors.secondary,
+    borderWidth: 2,
+    borderColor: "#FF0000",
+    height: 60,
+    fontSize: 16,
+    padding: 20,
+    borderRadius: 8,
+    color: colors.text
+  },
   checkboxContainer: {
     flexDirection: 'row',
   },
