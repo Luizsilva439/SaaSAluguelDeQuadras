@@ -10,7 +10,7 @@ import { colors } from '../../constants/colors';
 import { styles } from './styles';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../constants/strings';
-import { login } from './supabase/supabase';
+import ModalLogin from './supabase/supabase';
 
 
 
@@ -18,24 +18,20 @@ export default function Auth() {
 
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isClicked, setIsClicked] = useState<boolean>(false)
+  const [isClicked, setIsClicked] = useState<boolean>(false);
+
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
   function handleLogin() {
     setIsLoading(true);
-    login(email, password)
-      .finally(() => {
-        setIsLoading(false);
-        (navigation as any).replace('Splash');
-      });
   }
 
   useEffect(() => {
-    if(email != '' && password?.length >= 5){
+    if (email != '' && password?.length >= 5) {
       setIsClicked(true);
-    }else{
+    } else {
       setIsClicked(false);
     }
   })
@@ -71,7 +67,7 @@ export default function Auth() {
               onChangeText={setPassword}
             />
 
-            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={() => handleLogin()} isClicked={isClicked} />
+            <New_buttom title='Entrar' colorText={colors.dark} isLoading={isLoading} onPress={() => setIsLoading(true)} isClicked={isClicked} />
 
             <View style={styles.link}>
               <TextLink title='Esqueceu sua senha?' />
@@ -85,7 +81,13 @@ export default function Auth() {
           </View>
 
         </View>
-      </View>
+
+        <ModalLogin
+          email={email}
+          senha={password}
+          visible={isLoading}
+          onClose={() => setIsLoading(false)}
+        />      </View>
     </SafeAreaView>
   );
 }

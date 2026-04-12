@@ -5,6 +5,7 @@ type AuthContextType = {
   session: any;
   userName: string | null;
   email: string | null;
+  created_at: string | null;
   loading: boolean;
   logout: () => Promise<void>;
 };
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: any) {
   const [session, setSession] = useState<any>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [created_at, setCreatedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function loadUserProfile(sessionData: any) {
@@ -24,21 +26,23 @@ export function AuthProvider({ children }: any) {
 
     const userId = sessionData.user.id;
 
+    // pega email do auth
+    setEmail(sessionData.user.email || null);
+
+    // pega nome e data na tabela Users
     const { data, error } = await supabase
       .from("Users")
-      .select("name")
+      .select("name, created_at")
       .eq("id", userId)
       .single();
 
-    const email = sessionData.user.email || null;
-    setEmail(email);
-
     if (error) {
-      console.log("Erro ao buscar nome:", error.message);
+      console.log("Erro ao buscar dados:", error.message);
       return;
     }
 
-    setUserName(data.name);
+    setUserName(data?.name || null);
+    setCreatedAt(data?.created_at || null);
   }
 
   useEffect(() => {
@@ -64,6 +68,8 @@ export function AuthProvider({ children }: any) {
           await loadUserProfile(sessionData);
         } else {
           setUserName(null);
+          setEmail(null);
+          setCreatedAt(null);
         }
       }
     );
@@ -77,10 +83,14 @@ export function AuthProvider({ children }: any) {
     await supabase.auth.signOut();
     setSession(null);
     setUserName(null);
+    setEmail(null);
+    setCreatedAt(null);
   }
 
   return (
-    <AuthContext.Provider value={{ session, userName, loading, email, logout }}>
+    <AuthContext.Provider
+      value={{ session, userName, email, created_at, loading, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

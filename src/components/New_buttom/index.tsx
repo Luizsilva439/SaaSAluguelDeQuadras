@@ -15,6 +15,8 @@ type Props = {
   isLoading?: boolean;
   titleSize?: number;
   isClicked?: boolean;
+  borderColor?: string;
+  borderWidth?: number;
   onPress?: (event: GestureResponderEvent) => void;
 };
 
@@ -26,6 +28,8 @@ export default function New_buttom({
   colorText = colors.background,
   isLoading = false,
   isClicked = false,
+  borderColor = colors.primary,
+  borderWidth = 0,
   onPress,
 }: Props) {
 
@@ -42,6 +46,8 @@ export default function New_buttom({
             justifyContent: 'center',
             alignItems: 'center',
             flexDirection: 'row',
+            borderWidth: borderWidth,
+            borderColor: borderColor,
           }}
           disabled={isLoading}
         >{
