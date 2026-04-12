@@ -5,32 +5,32 @@ import { styles } from "./styles";
 import Title from "../../../../components/Title";
 import { Ionicons } from "@expo/vector-icons";
 import { strings } from "../../../../constants/strings";
+import { useContext } from "react";
+import { AuthContext } from "../../../../contexts/AuthContext";
+
+
 
 export default function TopHome() {
+    const { userName } = useContext(AuthContext);
+
     return (
         <View style={styles.top}>
             <View style={styles.header}>
-                <ProfileComponent
-                    image={false}
-                    source={require('../../../../assets/imageTest.jpg')}
-                />
                 <View style={styles.header_content}>
                     <Title
                         title={strings.projectName}
                         size={20}
                     />
 
-                    <Pressable>
-                        <Ionicons name="notifications" size={25} color={colors.text} />
-                    </Pressable>
+                   
                 </View>
             </View>
 
             <View style={styles.defaultTitle}>
-                <Title title="Hello, " size={24} /><Title title="User" size={24} />
+                <Title title="Bem-vindo, " size={24} /><Title title={(userName as any)} size={24} />
             </View>
 
-            <View style={styles.search}>
+            <View>
                 <Pressable style={styles.searchBar}>
                     <Ionicons name="search" size={25} color={colors.tertiary} style={{marginRight: 8}}/>
                     <TextInput 
@@ -39,9 +39,6 @@ export default function TopHome() {
                 </Pressable>
             </View>
 
-            <View style={styles.defaultTitle}>
-                <Title title="Recommended" />
-            </View>
         </View>
     );
 }

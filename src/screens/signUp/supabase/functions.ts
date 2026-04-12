@@ -28,6 +28,7 @@ async function registrar({ email, senha, nome }: singUpData) {
       {
         id: user?.id,
         name: nome,
+        email: email,
       },
     ]);
 
