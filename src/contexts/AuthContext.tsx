@@ -9,6 +9,7 @@ type AuthContextType = {
   loading: boolean;
   setUserName: any;
   logout: () => Promise<void>;
+  reload: any;
 };
 
 export const AuthContext = createContext<AuthContextType>(
@@ -44,6 +45,18 @@ export function AuthProvider({ children }: any) {
 
     setUserName(data?.name || null);
     setCreatedAt(data?.created_at || null);
+  }
+
+  async function reload() {
+    const { data } = await supabase.auth.getSession();
+
+    setSession(data.session);
+
+    if (data.session) {
+      await loadUserProfile(data.session);
+    }
+
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -90,7 +103,7 @@ export function AuthProvider({ children }: any) {
 
   return (
     <AuthContext.Provider
-      value={{ session, userName, email, created_at, loading, setUserName, logout }}
+      value={{ session, userName, email, created_at, loading, setUserName, reload, logout }}
     >
       {children}
     </AuthContext.Provider>

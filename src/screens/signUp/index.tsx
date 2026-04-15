@@ -16,7 +16,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 
 export default function SignUp() {
 
-    const { setUserName } = useContext(AuthContext);
+    const { setUserName, reload } = useContext(AuthContext);
 
     const navigation = useNavigation();
 
@@ -65,11 +65,12 @@ export default function SignUp() {
 
     function handleSignUp() {
         setIsLoading(true);
-        setUserName(nome);
         registrar({ email, senha, nome })
             .finally(() => {
+                reload();
                 setIsLoading(false);
                 (navigation as any).replace('Splash');
+               
             });
     }
 

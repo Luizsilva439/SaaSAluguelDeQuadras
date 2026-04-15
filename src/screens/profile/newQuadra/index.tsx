@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
         width: "100%",
-        padding: 15,
+        padding: 11,
         marginTop: 20,
         backgroundColor: colors.primary,
         justifyContent: "center",
