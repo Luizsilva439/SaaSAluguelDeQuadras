@@ -7,13 +7,16 @@ import { useNavigation } from '@react-navigation/native';
 import Title from "../../components/Title";
 import { colors } from "../../constants/colors";
 import Checkbox from "expo-checkbox";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import New_buttom from "../../components/New_buttom";
 import TextLink from "../../components/TextLink";
 import { registrar } from "./supabase/functions";
+import { AuthContext } from "../../contexts/AuthContext";
 
 
 export default function SignUp() {
+
+    const { setUserName } = useContext(AuthContext);
 
     const navigation = useNavigation();
 
@@ -62,6 +65,7 @@ export default function SignUp() {
 
     function handleSignUp() {
         setIsLoading(true);
+        setUserName(nome);
         registrar({ email, senha, nome })
             .finally(() => {
                 setIsLoading(false);

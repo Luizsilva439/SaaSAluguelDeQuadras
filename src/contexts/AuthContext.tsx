@@ -7,6 +7,7 @@ type AuthContextType = {
   email: string | null;
   created_at: string | null;
   loading: boolean;
+  setUserName: any;
   logout: () => Promise<void>;
 };
 
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: any) {
 
   return (
     <AuthContext.Provider
-      value={{ session, userName, email, created_at, loading, logout }}
+      value={{ session, userName, email, created_at, loading, setUserName, logout }}
     >
       {children}
     </AuthContext.Provider>
