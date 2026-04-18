@@ -30,7 +30,7 @@ export default function TopHome() {
                 <Title title="Bem-vindo, " size={24} /><Title title={(userName as any)} size={24} />
             </View>
 
-            <View>
+            <View >
                 <Pressable style={styles.searchBar}>
                     <Ionicons name="search" size={25} color={colors.tertiary} style={{marginRight: 8}}/>
                     <TextInput 

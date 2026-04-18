@@ -4,12 +4,14 @@ import Auth from '../../screens/auth';
 import SignUp from '../../screens/signUp'
 import Splash from '../../screens/splash';
 import TabNavigator from '../tab/TabNavigator';
+import PublishQuadra from '../../screens/publishQuadra';
 
 export type RootStackParamList = {
   Auth: undefined;
   SignUp: undefined;
   Splash: undefined;
   TabNavigator: undefined;
+  PublishQuadra: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -33,6 +35,10 @@ export default function StackNavigator() {
       <Stack.Screen
         name="Splash"
         component={Splash} />
+
+        <Stack.Screen
+        name="PublishQuadra"
+        component={PublishQuadra} />
 
     </Stack.Navigator>
   );

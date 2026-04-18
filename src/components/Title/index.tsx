@@ -6,9 +6,11 @@ type Props = {
   size?: number;
   color?: string;
   marginBottom?: number;
+  fontWeight?: "bold" | "100" | "200" | "300" | "400" | "500" | "600";
+  marginTop?: number;
 };
 
-export default function Title({ title, size = 24, color = colors.text, marginBottom = 0 }: Props) {
+export default function Title({ title, size = 24, color = colors.text, marginBottom = 0, fontWeight = 'bold', marginTop}: Props) {
   return (
     <Text
       style={{
@@ -16,7 +18,8 @@ export default function Title({ title, size = 24, color = colors.text, marginBot
         color: color,
         fontFamily: 'Arial-BoldMT',
         marginBottom: marginBottom,
-        fontWeight: 'bold',
+        fontWeight: fontWeight,
+        marginTop: marginTop,
       }}
     >
       {title}

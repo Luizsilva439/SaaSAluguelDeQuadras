@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
         marginHorizontal: 20
     },
     top: {
-        padding: 16
+        paddingVertical: 16
     },
     defaultTitle:{
         marginVertical: 20,
@@ -21,6 +21,7 @@ export const styles = StyleSheet.create({
     },
     searchBar:{
         flexDirection: 'row',
+        alignItems: "center",
         backgroundColor: colors.secondary,
         padding: 8,
         paddingLeft: 12,
