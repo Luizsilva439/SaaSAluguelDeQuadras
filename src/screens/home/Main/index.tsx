@@ -13,6 +13,7 @@ export default function MainHome({ quadras, loading }: any) {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <CardFeed
+            id={item.id}
             titulo={item.titulo}
             cidade={item.cidade}
             preco={item.preco}

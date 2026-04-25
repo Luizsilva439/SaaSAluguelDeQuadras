@@ -2,8 +2,10 @@ import { View, Text, Image, StyleSheet, Pressable } from "react-native";
 import { colors } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import Title from "./Title";
+import { useNavigation } from "@react-navigation/native";
 
 type Props = {
+  id: string;
   titulo: string;
   cidade: string;
   preco: number;
@@ -14,6 +16,7 @@ type Props = {
 };
 
 export default function CardFeed({
+  id,
   titulo,
   cidade,
   preco,
@@ -22,8 +25,18 @@ export default function CardFeed({
   reviews = 120,
   disponivel = true,
 }: Props) {
+  const navigation = useNavigation<any>();
+
+  function handleOpenDetails() {
+    console.log("ID ENVIADO PARA DETAILS:", id);
+
+    navigation.navigate("QuadraDetails", {
+      quadraId: id,
+    });
+  }
+
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={handleOpenDetails}>
       {/* IMAGEM */}
       <View style={styles.imageWrapper}>
         {imagem ? (
@@ -74,7 +87,7 @@ export default function CardFeed({
           </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -85,10 +98,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 16,
 
-    // Android
     elevation: 4,
 
-    // iOS
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 8,

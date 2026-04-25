@@ -5,6 +5,7 @@ import SignUp from '../../screens/signUp'
 import Splash from '../../screens/splash';
 import TabNavigator from '../tab/TabNavigator';
 import PublishQuadra from '../../screens/publishQuadra';
+import QuadraDetails from '../../screens/quadraDetails';
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -12,6 +13,7 @@ export type RootStackParamList = {
   Splash: undefined;
   TabNavigator: undefined;
   PublishQuadra: undefined;
+  QuadraDetails: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -36,9 +38,15 @@ export default function StackNavigator() {
         name="Splash"
         component={Splash} />
 
-        <Stack.Screen
+      <Stack.Screen
         name="PublishQuadra"
         component={PublishQuadra} />
+
+      <Stack.Screen
+        name="QuadraDetails"
+        component={QuadraDetails}
+        options={{ headerShown: false }}
+      />
 
     </Stack.Navigator>
   );
