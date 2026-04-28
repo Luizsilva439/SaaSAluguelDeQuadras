@@ -6,6 +6,8 @@ import Splash from '../../screens/splash';
 import TabNavigator from '../tab/TabNavigator';
 import PublishQuadra from '../../screens/publishQuadra';
 import QuadraDetails from '../../screens/quadraDetails';
+import MyCourts from '../../screens/MyCourts';
+import QuadraReservas from "../../screens/QuadraReservas";
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -14,6 +16,8 @@ export type RootStackParamList = {
   TabNavigator: undefined;
   PublishQuadra: undefined;
   QuadraDetails: undefined;
+  MyCourts: undefined;
+  QuadraReservas: { quadraId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -48,6 +52,17 @@ export default function StackNavigator() {
         options={{ headerShown: false }}
       />
 
+      <Stack.Screen
+        name="MyCourts"
+        component={MyCourts}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="QuadraReservas"
+        component={QuadraReservas}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }

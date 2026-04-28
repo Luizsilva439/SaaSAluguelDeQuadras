@@ -5,6 +5,7 @@ import { supabase } from "../../services/supabase";
 import { styles } from "./styles";
 import { colors } from "../../constants/colors";
 import { sendWhatsAppMessage } from "../../services/whatsapp";
+import { simularPagamento } from "../../services/pagamento";
 
 import HeaderImage from "./components/HeaderImage";
 import QuadraInfo from "./components/QuadraInfo";
@@ -230,7 +231,11 @@ export default function QuadraDetails() {
         return;
       }
 
+      // SIMULA PAGAMENTO
+      await simularPagamento(user.data.user.id, quadra.owner_id, quadra.preco);
+
       const horaFim = `${Number(selectedHour.split(":")[0]) + 1}:00`;
+      
 
       const { error } = await supabase.from("reservas").insert([
         {
