@@ -8,13 +8,11 @@ export default function AcessoRapido() {
   const navigation = useNavigation<any>();
 
   function handleNavigateToMyCourts() {
-    console.log("Navegando para Minhas Quadras");
     navigation.navigate("MyCourts");
   }
 
   function handleNavigateToMyReservas() {
-    console.log("Navegando para Minhas Reservas");
-    navigation.navigate("MyReservas"); // cria essa rota depois
+    navigation.navigate("MyReservas");
   }
 
   return (
