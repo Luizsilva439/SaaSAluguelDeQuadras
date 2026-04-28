@@ -11,10 +11,12 @@ import { styles } from './styles';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../constants/strings';
 import ModalLogin from './supabase/supabase';
+import { useAppModal } from '../../contexts/AppModalContext';
 
 
 
 export default function Auth() {
+  const { showModal } = useAppModal();
 
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -87,6 +89,7 @@ export default function Auth() {
           senha={password}
           visible={isLoading}
           onClose={() => setIsLoading(false)}
+          onError={(message) => showModal({ title: "Erro", message })}
         />      </View>
     </SafeAreaView>
   );

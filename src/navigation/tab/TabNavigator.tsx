@@ -1,8 +1,8 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Home from "../../screens/home";
 import Profile from "../../screens/profile";
-import Calendar from "../../screens/calendar";
-import Search from "../../screens/search";
+import MyReservas from "../../screens/MyReservas";
+import Favoritos from "../../screens/favoritos";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../constants/colors";
 
@@ -13,12 +13,21 @@ export default function TabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: colors.text,
-        tabBarInactiveTintColor: "#aaa",
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: "#9fb5ad",
+        tabBarHideOnKeyboard: true,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "700",
+          marginBottom: 3,
+        },
         tabBarStyle: {
           backgroundColor: colors.secondary,
           borderTopWidth: 0,
+          height: 68,
+          paddingTop: 8,
+          paddingBottom: 8,
         },
       }}
     >
@@ -27,6 +36,7 @@ export default function TabNavigator() {
         name="Home"
         component={Home}
         options={{
+          tabBarLabel: "Início",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
@@ -38,12 +48,13 @@ export default function TabNavigator() {
       />
 
       <Tab.Screen
-        name="Search"
-        component={Search}
+        name="Favoritos"
+        component={Favoritos}
         options={{
+          tabBarLabel: "Favoritos",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "search" : "search-outline"}
+              name={focused ? "heart" : "heart-outline"}
               color={color}
               size={size}
             />
@@ -52,9 +63,10 @@ export default function TabNavigator() {
       />
 
       <Tab.Screen
-        name="Calendar"
-        component={Calendar}
+        name="Reservas"
+        component={MyReservas}
         options={{
+          tabBarLabel: "Reservas",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "calendar" : "calendar-outline"}
@@ -69,6 +81,7 @@ export default function TabNavigator() {
         name="Profile"
         component={Profile}
         options={{
+          tabBarLabel: "Perfil",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "person" : "person-outline"}

@@ -1,7 +1,7 @@
 import { View, FlatList, Text } from "react-native";
 import CardFeed from "../../../components/CardFeed";
 
-export default function MainHome({ quadras, loading }: any) {
+export default function MainHome({ quadras, loading, favoriteIds, onToggleFavorite }: any) {
   if (loading) {
     return <Text>Carregando...</Text>;
   }
@@ -18,6 +18,8 @@ export default function MainHome({ quadras, loading }: any) {
             cidade={item.cidade}
             preco={item.preco}
             imagem={item.quadras_imagens?.[0]?.url}
+            isFavorite={favoriteIds?.has(item.id)}
+            onToggleFavorite={onToggleFavorite}
           />
         )}
         showsVerticalScrollIndicator={false}

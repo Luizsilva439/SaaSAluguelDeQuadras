@@ -1,8 +1,11 @@
-import { View, Text, Image, StyleSheet, Pressable } from "react-native";
+import { View, Text, Image, StyleSheet, Pressable, Share } from "react-native";
 import { colors } from "../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import Title from "./Title";
 import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState } from "react";
+import { supabase } from "../services/supabase";
+import { useAppModal } from "../contexts/AppModalContext";
 
 type Props = {
   id: string;
@@ -13,6 +16,8 @@ type Props = {
   rating?: number;
   reviews?: number;
   disponivel?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (quadraId: string) => void;
 };
 
 export default function CardFeed({
@@ -24,8 +29,17 @@ export default function CardFeed({
   rating = 4.8,
   reviews = 120,
   disponivel = true,
+  isFavorite = false,
+  onToggleFavorite,
 }: Props) {
   const navigation = useNavigation<any>();
+  const { showModal } = useAppModal();
+  const [favorite, setFavorite] = useState(isFavorite);
+  const [loadingFavorite, setLoadingFavorite] = useState(false);
+
+  useEffect(() => {
+    setFavorite(isFavorite);
+  }, [isFavorite]);
 
   function handleOpenDetails() {
     console.log("ID ENVIADO PARA DETAILS:", id);
@@ -33,6 +47,68 @@ export default function CardFeed({
     navigation.navigate("QuadraDetails", {
       quadraId: id,
     });
+  }
+
+  async function handleShare() {
+    try {
+      await Share.share({
+        message: `Confira esta quadra no app:\n\n${titulo}\n${cidade}\nR$ ${preco.toFixed(
+          0
+        )}/hora`,
+      });
+    } catch (error) {
+      showModal({ title: "Erro", message: "Não foi possível compartilhar esta quadra." });
+    }
+  }
+
+  async function handleToggleFavorite() {
+    if (loadingFavorite) return;
+
+    if (onToggleFavorite) {
+      onToggleFavorite(id);
+      return;
+    }
+
+    const user = await supabase.auth.getUser();
+
+    if (!user.data.user) {
+      showModal({ title: "Erro", message: "Você precisa estar logado para favoritar." });
+      return;
+    }
+
+    const nextValue = !favorite;
+    setFavorite(nextValue);
+    setLoadingFavorite(true);
+
+    if (nextValue) {
+      const { error } = await supabase.from("favoritos").insert([
+        {
+          user_id: user.data.user.id,
+          quadra_id: id,
+        },
+      ]);
+
+      setLoadingFavorite(false);
+
+      if (error) {
+        setFavorite(false);
+        showModal({ title: "Erro", message: "Não foi possível adicionar aos favoritos." });
+      }
+      return;
+    }
+
+    const { error } = await supabase
+      .from("favoritos")
+      .delete()
+      .eq("user_id", user.data.user.id)
+      .eq("quadra_id", id);
+
+    setLoadingFavorite(false);
+
+    if (error) {
+      setFavorite(true);
+      showModal({ title: "Erro", message: "Não foi possível remover dos favoritos." });
+    }
   }
 
   return (
@@ -56,9 +132,29 @@ export default function CardFeed({
           </View>
         )}
 
-        {/* BOTÃO FAVORITO */}
-        <Pressable style={styles.favoriteButton}>
-          <Ionicons name="heart-outline" size={20} color={colors.text} />
+        {/* BOTÕES DE AÇÃO */}
+        <Pressable
+          style={[styles.actionButton, styles.shareButton]}
+          onPress={(event) => {
+            event.stopPropagation();
+            handleShare();
+          }}
+        >
+          <Ionicons name="share-social-outline" size={20} color={colors.text} />
+        </Pressable>
+
+        <Pressable
+          style={styles.actionButton}
+          onPress={(event) => {
+            event.stopPropagation();
+            handleToggleFavorite();
+          }}
+        >
+          <Ionicons
+            name={favorite ? "heart" : "heart-outline"}
+            size={20}
+            color={favorite ? "#ff6666" : colors.text}
+          />
         </Pressable>
       </View>
 
@@ -150,7 +246,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  favoriteButton: {
+  actionButton: {
     position: "absolute",
     top: 12,
     right: 12,
@@ -160,6 +256,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  shareButton: {
+    right: 56,
   },
 
   content: {

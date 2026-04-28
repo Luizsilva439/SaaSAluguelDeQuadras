@@ -1,11 +1,10 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
   ActivityIndicator,
   FlatList,
   Pressable,
-  Alert,
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,6 +13,8 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { supabase } from "../../services/supabase";
 import { colors } from "../../constants/colors";
 import { styles } from "./styles";
+import { subscribeToTables } from "../../services/realtime";
+import { useAppModal } from "../../contexts/AppModalContext";
 
 type Reserva = {
   id: string;
@@ -58,6 +59,8 @@ function renderStatus(status: string) {
 
 export default function MyReservas() {
   const navigation = useNavigation<any>();
+  const canGoBack = navigation.canGoBack();
+  const { showModal } = useAppModal();
 
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +102,7 @@ export default function MyReservas() {
       .order("hora_inicio", { ascending: true });
 
     if (error) {
-      Alert.alert("Erro", "Não foi possível carregar suas reservas.");
+      showModal({ title: "Erro", message: "Não foi possível carregar suas reservas." });
       setLoading(false);
       return;
     }
@@ -117,10 +120,10 @@ export default function MyReservas() {
   async function handleCancelReserva(reservaId: string, status: string) {
     if (status === "cancelada") return;
 
-    Alert.alert(
-      "Cancelar reserva",
-      "Tem certeza que deseja cancelar esta reserva?",
-      [
+    showModal({
+      title: "Cancelar reserva",
+      message: "Tem certeza que deseja cancelar esta reserva?",
+      buttons: [
         { text: "Não", style: "cancel" },
         {
           text: "Sim, cancelar",
@@ -136,15 +139,15 @@ export default function MyReservas() {
             setCancelingId(null);
 
             if (error) {
-              Alert.alert("Erro", "Não foi possível cancelar a reserva.");
+              showModal({ title: "Erro", message: "Não foi possível cancelar a reserva." });
               return;
             }
 
             await fetchReservas(false);
           },
         },
-      ]
-    );
+      ],
+    });
   }
 
   useFocusEffect(
@@ -152,6 +155,30 @@ export default function MyReservas() {
       fetchReservas();
     }, [])
   );
+
+  useEffect(() => {
+    let unsubscribe = () => {};
+    let isMounted = true;
+
+    async function setupRealtime() {
+      const user = await supabase.auth.getUser();
+      if (!isMounted || !user.data.user) return;
+
+      unsubscribe = subscribeToTables(
+        [{ table: "reservas", filter: `user_id=eq.${user.data.user.id}` }],
+        () => {
+          fetchReservas(false);
+        }
+      );
+    }
+
+    setupRealtime();
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -164,8 +191,15 @@ export default function MyReservas() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={colors.text} />
+        <Pressable
+          onPress={() => (canGoBack ? navigation.goBack() : navigation.navigate("Home"))}
+          style={styles.backButton}
+        >
+          <Ionicons
+            name={canGoBack ? "chevron-back" : "home-outline"}
+            size={22}
+            color={colors.text}
+          />
         </Pressable>
 
         <Text style={styles.title}>Minhas Reservas</Text>

@@ -8,6 +8,7 @@ import { colors } from "../../constants/colors";
 import CardFeed from "../../components/CardFeed";
 import CardMyCourt from "../../components/CardMyCourt";
 import { styles } from "./styles";
+import { subscribeToTables } from "../../services/realtime";
 
 type Quadra = {
   id: string;
@@ -24,8 +25,8 @@ export default function MyCourts() {
   const [quadras, setQuadras] = useState<Quadra[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function fetchMyCourts() {
-    setLoading(true);
+  async function fetchMyCourts(showLoading = true) {
+    if (showLoading) setLoading(true);
 
     const user = await supabase.auth.getUser();
 
@@ -51,6 +52,30 @@ export default function MyCourts() {
 
   useEffect(() => {
     fetchMyCourts();
+  }, []);
+
+  useEffect(() => {
+    let unsubscribe = () => {};
+    let isMounted = true;
+
+    async function setupRealtime() {
+      const user = await supabase.auth.getUser();
+      if (!isMounted || !user.data.user) return;
+
+      unsubscribe = subscribeToTables(
+        [{ table: "quadras", filter: `owner_id=eq.${user.data.user.id}` }],
+        () => {
+          fetchMyCourts(false);
+        }
+      );
+    }
+
+    setupRealtime();
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   if (loading) {

@@ -108,6 +108,15 @@ export const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
+  statusCancelled: {
+    backgroundColor: "rgba(255, 82, 82, 0.12)",
+    borderColor: "rgba(255, 82, 82, 0.3)",
+  },
+
+  statusCancelledText: {
+    color: "#ff6666",
+  },
+
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -124,5 +133,25 @@ export const styles = StyleSheet.create({
     color: colors.gray,
     fontSize: 13,
     fontWeight: "600",
+  },
+
+  cancelButton: {
+    marginTop: 14,
+    backgroundColor: "rgba(255, 82, 82, 0.12)",
+    borderColor: "rgba(255, 82, 82, 0.25)",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 11,
+    alignItems: "center",
+  },
+
+  cancelButtonText: {
+    color: "#ff6666",
+    fontWeight: "800",
+    fontSize: 13,
+  },
+
+  disabledButton: {
+    opacity: 0.5,
   },
 });

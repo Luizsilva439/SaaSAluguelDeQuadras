@@ -8,9 +8,10 @@ type ModalLoginProps = {
   senha: string;
   visible: boolean;
   onClose: () => void;
+  onError?: (message: string) => void;
 };
 
-export default function ModalLogin({ email, senha, visible, onClose }: ModalLoginProps) {
+export default function ModalLogin({ email, senha, visible, onClose, onError }: ModalLoginProps) {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState<boolean>(visible);
 
@@ -29,7 +30,7 @@ export default function ModalLogin({ email, senha, visible, onClose }: ModalLogi
     });
 
     if (error) {
-      alert("Erro: " + error.message);
+      onError?.("Erro: " + error.message);
       setIsLoading(false);
       onClose();
       return;

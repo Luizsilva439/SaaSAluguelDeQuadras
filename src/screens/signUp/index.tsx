@@ -12,11 +12,13 @@ import New_buttom from "../../components/New_buttom";
 import TextLink from "../../components/TextLink";
 import { registrar } from "./supabase/functions";
 import { AuthContext } from "../../contexts/AuthContext";
+import { useAppModal } from "../../contexts/AppModalContext";
 
 
 export default function SignUp() {
 
     const { setUserName, reload } = useContext(AuthContext);
+    const { showModal } = useAppModal();
 
     const navigation = useNavigation();
 
@@ -63,15 +65,21 @@ export default function SignUp() {
     }
      
 
-    function handleSignUp() {
+    async function handleSignUp() {
         setIsLoading(true);
-        registrar({ email, senha, nome })
-            .finally(() => {
-                reload();
-                setIsLoading(false);
-                (navigation as any).replace('Splash');
-               
+        try {
+            await registrar({ email, senha, nome });
+            await reload();
+            showModal({ title: "Sucesso", message: "Conta criada com sucesso!" });
+            (navigation as any).replace('Splash');
+        } catch (error: any) {
+            showModal({
+                title: "Erro",
+                message: error?.message || "Não foi possível criar a conta.",
             });
+        } finally {
+            setIsLoading(false);
+        }
     }
 
 

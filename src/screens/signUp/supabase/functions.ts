@@ -15,8 +15,7 @@ async function registrar({ email, senha, nome }: singUpData) {
   });
 
   if (error) {
-    alert(error.message);
-    return;
+    throw new Error(error.message);
   }
 
   const user = data.user;
@@ -33,12 +32,9 @@ async function registrar({ email, senha, nome }: singUpData) {
     ]);
 
   if (errorProfile) {
-    alert("Erro ao salvar perfil: " + errorProfile.message);
-    return;
+    throw new Error("Erro ao salvar perfil: " + errorProfile.message);
   }
-
-  alert("Conta criada com sucesso!");
-
+  return true;
 }
 
 export { registrar };

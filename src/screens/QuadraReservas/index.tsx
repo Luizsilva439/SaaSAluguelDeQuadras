@@ -1,17 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
 } from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useRoute, useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { supabase } from "../../services/supabase";
 import { colors } from "../../constants/colors";
 import { styles } from "./styles";
+import { subscribeToTables } from "../../services/realtime";
+import { useAppModal } from "../../contexts/AppModalContext";
 
 type Reserva = {
   id: string;
@@ -52,20 +55,24 @@ function formatHour(hour: string) {
 export default function QuadraReservas() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const { showModal } = useAppModal();
 
   const { quadraId } = route.params;
 
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
 
-  async function fetchReservas() {
-    setLoading(true);
+  async function fetchReservas(showLoading = true) {
+    if (showLoading) setLoading(true);
 
     const { data, error } = await supabase
       .from("reservas")
       .select("*, Users(name)")
       .eq("quadra_id", quadraId)
-      .order("data_reserva", { ascending: true });
+      .order("data_reserva", { ascending: true })
+      .order("hora_inicio", { ascending: true });
 
     if (error) {
       console.log("Erro ao buscar reservas:", error.message);
@@ -77,15 +84,67 @@ export default function QuadraReservas() {
     setLoading(false);
   }
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchReservas();
+    }, [quadraId])
+  );
+
   useEffect(() => {
-    fetchReservas();
-  }, []);
+    const unsubscribe = subscribeToTables(
+      [{ table: "reservas", filter: `quadra_id=eq.${quadraId}` }],
+      () => {
+        fetchReservas(false);
+      }
+    );
+
+    return unsubscribe;
+  }, [quadraId]);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await fetchReservas(false);
+    setRefreshing(false);
+  }
 
   function renderStatus(status: string) {
     if (status === "cancelada") return "Cancelada";
     if (status === "pendente") return "Pendente";
     if (status === "pago") return "Pago";
     return status;
+  }
+
+  async function handleCancelReserva(reservaId: string, status: string) {
+    if (status === "cancelada") return;
+
+    showModal({
+      title: "Cancelar reserva",
+      message: "Deseja cancelar esta reserva?",
+      buttons: [
+        { text: "Não", style: "cancel" },
+        {
+          text: "Sim, cancelar",
+          style: "destructive",
+          onPress: async () => {
+            setCancelingId(reservaId);
+
+            const { error } = await supabase
+              .from("reservas")
+              .update({ status: "cancelada" })
+              .eq("id", reservaId);
+
+            setCancelingId(null);
+
+            if (error) {
+              showModal({ title: "Erro", message: "Não foi possível cancelar a reserva." });
+              return;
+            }
+
+            await fetchReservas(false);
+          },
+        },
+      ],
+    });
   }
 
   if (loading) {
@@ -124,50 +183,78 @@ export default function QuadraReservas() {
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 30 }}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              {/* TOP */}
-              <View style={styles.cardTop}>
-                <View style={styles.clientRow}>
-                  <Ionicons
-                    name="person-circle-outline"
-                    size={28}
-                    color={colors.primary}
-                  />
-                  <Text style={styles.clientName}>
-                    {item.Users?.name || "Cliente não identificado"}
-                  </Text>
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+            />
+          }
+          renderItem={({ item }) => {
+            const isCancelled = item.status === "cancelada";
+            const isCanceling = cancelingId === item.id;
+
+            return (
+              <View style={styles.card}>
+                <View style={styles.cardTop}>
+                  <View style={styles.clientRow}>
+                    <Ionicons
+                      name="person-circle-outline"
+                      size={28}
+                      color={colors.primary}
+                    />
+                    <Text style={styles.clientName}>
+                      {item.Users?.name || "Cliente não identificado"}
+                    </Text>
+                  </View>
+
+                  <View style={[styles.statusBadge, isCancelled && styles.statusCancelled]}>
+                    <Text
+                      style={[
+                        styles.statusBadgeText,
+                        isCancelled && styles.statusCancelledText,
+                      ]}
+                    >
+                      {renderStatus(item.status)}
+                    </Text>
+                  </View>
                 </View>
 
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusBadgeText}>
-                    {renderStatus(item.status)}
-                  </Text>
+                <View style={styles.infoRow}>
+                  <View style={styles.infoItem}>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={16}
+                      color={colors.gray}
+                    />
+                    <Text style={styles.infoText}>
+                      {formatDate(item.data_reserva)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.infoItem}>
+                    <Ionicons name="time-outline" size={16} color={colors.gray} />
+                    <Text style={styles.infoText}>
+                      {formatHour(item.hora_inicio)} - {formatHour(item.hora_fim)}
+                    </Text>
+                  </View>
                 </View>
+
+                <Pressable
+                  style={[
+                    styles.cancelButton,
+                    (isCancelled || isCanceling) && styles.disabledButton,
+                  ]}
+                  onPress={() => handleCancelReserva(item.id, item.status)}
+                  disabled={isCancelled || isCanceling}
+                >
+                  <Text style={styles.cancelButtonText}>
+                    {isCanceling ? "Cancelando..." : "Cancelar reserva"}
+                  </Text>
+                </Pressable>
               </View>
-
-              {/* INFO */}
-              <View style={styles.infoRow}>
-                <View style={styles.infoItem}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={16}
-                    color={colors.gray}
-                  />
-                  <Text style={styles.infoText}>
-                    {formatDate(item.data_reserva)}
-                  </Text>
-                </View>
-
-                <View style={styles.infoItem}>
-                  <Ionicons name="time-outline" size={16} color={colors.gray} />
-                  <Text style={styles.infoText}>
-                    {formatHour(item.hora_inicio)} - {formatHour(item.hora_fim)}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
+            );
+          }}
         />
       )}
     </View>

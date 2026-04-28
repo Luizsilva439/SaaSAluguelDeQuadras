@@ -1,4 +1,4 @@
-import { View, Text, TextInput, StyleSheet, Pressable, ScrollView, Image } from "react-native";
+import { View, Text, TextInput, Pressable, ScrollView, Image } from "react-native";
 import { colors } from "../../../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -9,8 +9,10 @@ import { styles } from "./styles";
 import { ActivityIndicator } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
+import { useAppModal } from "../../../../contexts/AppModalContext";
 
 export default function Forms() {
+  const { showModal } = useAppModal();
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [cidade, setCidade] = useState("");
@@ -23,19 +25,22 @@ export default function Forms() {
   const [fotos, setFotos] = useState<string[]>([
   ]);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
 
   async function pickImage() {
     if (fotos.length >= 8) {
-      alert("Você só pode adicionar até 8 fotos.");
+      showModal({ title: "Limite atingido", message: "Você só pode adicionar até 8 fotos." });
       return;
     }
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== "granted") {
-      alert("Permissão para acessar galeria foi negada!");
+      showModal({
+        title: "Permissão negada",
+        message: "Permissão para acessar galeria foi negada.",
+      });
       return;
     }
 
@@ -61,8 +66,37 @@ export default function Forms() {
     setFotos(newFotos);
   }
 
+  function validarFormulario() {
+    if (!titulo.trim()) return "Informe o título da quadra.";
+    if (!descricao.trim()) return "Informe uma descrição da quadra.";
+    if (!telefone.trim()) return "Informe um telefone de contato.";
+    if (!cidade.trim()) return "Informe a cidade.";
+    if (!endereco.trim()) return "Informe o endereço.";
+    if (!tipoEsporte) return "Selecione o tipo de esporte.";
+    if (!preco.trim()) return "Informe o preço por hora.";
+    if (fotos.length === 0) return "Adicione pelo menos 1 foto.";
+
+    const precoNumero = Number(preco.replace(",", "."));
+    if (isNaN(precoNumero) || precoNumero <= 0) {
+      return "Informe um preço válido.";
+    }
+
+    const telefoneNumeros = telefone.replace(/\D/g, "");
+    if (telefoneNumeros.length < 10) {
+      return "Informe um telefone válido com DDD.";
+    }
+
+    return null;
+  }
+
   async function handleCreateQuadra() {
     try {
+      const erroValidacao = validarFormulario();
+      if (erroValidacao) {
+        showModal({ title: "Campos obrigatórios", message: erroValidacao });
+        return;
+      }
+
       setIsPublishing(true);
 
       await createQuadra({
@@ -76,11 +110,14 @@ export default function Forms() {
         fotos,
       });
 
-      alert("Quadra publicada com sucesso!");
+      showModal({ title: "Sucesso", message: "Quadra publicada com sucesso!" });
 
-      navigation.navigate("Profile" as never); 
+      navigation.navigate("Profile");
     } catch (err: any) {
-      alert(err.message);
+      showModal({
+        title: "Erro",
+        message: err?.message || "Não foi possível publicar a quadra.",
+      });
     } finally {
       setIsPublishing(false);
     }
@@ -139,7 +176,8 @@ export default function Forms() {
             placeholderTextColor={colors.gray}
             keyboardType="phone-pad"
             value={telefone}
-            onChangeText={setTelefone}
+              onChangeText={(value) => setTelefone(value.replace(/[^\d()\-\s]/g, ""))}
+              maxLength={20}
           />
         </View>
       </View>
@@ -219,7 +257,8 @@ export default function Forms() {
               placeholderTextColor={colors.gray}
               keyboardType="numeric"
               value={preco}
-              onChangeText={setPreco}
+              onChangeText={(value) => setPreco(value.replace(/[^0-9,.\s]/g, ""))}
+              maxLength={10}
             />
           </View>
         </View>

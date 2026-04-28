@@ -8,9 +8,19 @@ type Props = {
   imagens: string[];
   disponivel?: boolean;
   onBack: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite: () => void;
+  onShare: () => void;
 };
 
-export default function HeaderImage({ imagens, disponivel, onBack }: Props) {
+export default function HeaderImage({
+  imagens,
+  disponivel,
+  onBack,
+  isFavorite = false,
+  onToggleFavorite,
+  onShare,
+}: Props) {
   const [indexAtual, setIndexAtual] = useState(0);
 
   const imagemAtual = imagens.length > 0 ? imagens[indexAtual] : undefined;
@@ -49,11 +59,15 @@ export default function HeaderImage({ imagens, disponivel, onBack }: Props) {
 
       {/* ICONES DIREITA */}
       <View style={styles.rightButtons}>
-        <Pressable style={styles.iconButton}>
-          <Ionicons name="heart-outline" size={20} color={colors.text} />
+        <Pressable style={styles.iconButton} onPress={onToggleFavorite}>
+          <Ionicons
+            name={isFavorite ? "heart" : "heart-outline"}
+            size={20}
+            color={isFavorite ? "#ff6666" : colors.text}
+          />
         </Pressable>
 
-        <Pressable style={styles.iconButton}>
+        <Pressable style={styles.iconButton} onPress={onShare}>
           <Ionicons name="share-social-outline" size={20} color={colors.text} />
         </Pressable>
       </View>

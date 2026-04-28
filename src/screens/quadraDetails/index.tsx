@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, ScrollView, ActivityIndicator, Text, Alert } from "react-native";
+import { View, ScrollView, ActivityIndicator, Text, Share } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { supabase } from "../../services/supabase";
 import { styles } from "./styles";
 import { colors } from "../../constants/colors";
 import { sendWhatsAppMessage } from "../../services/whatsapp";
 import { simularPagamento } from "../../services/pagamento";
+import { subscribeToTables } from "../../services/realtime";
+import { useAppModal } from "../../contexts/AppModalContext";
 
 import HeaderImage from "./components/HeaderImage";
 import QuadraInfo from "./components/QuadraInfo";
@@ -97,9 +99,17 @@ function gerarDatas(qtdDias = 6) {
 }
 // ============================
 
+function formatLocalDateValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function QuadraDetails() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const { showModal } = useAppModal();
 
   const { quadraId } = route.params;
 
@@ -108,6 +118,8 @@ export default function QuadraDetails() {
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingReserva, setLoadingReserva] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [loadingFavorite, setLoadingFavorite] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -135,6 +147,15 @@ export default function QuadraDetails() {
     "21:00",
     "22:00",
   ];
+
+  const now = new Date();
+  const todayValue = formatLocalDateValue(now);
+  const currentDecimalHour = now.getHours() + now.getMinutes() / 60;
+
+  const horariosDisponiveisPorData =
+    selectedDate === todayValue
+      ? horarios.filter((hour) => Number(hour.split(":")[0]) > currentDecimalHour)
+      : horarios;
 
   async function fetchQuadra() {
     setLoading(true);
@@ -172,7 +193,8 @@ export default function QuadraDetails() {
       .from("reservas")
       .select("*")
       .eq("quadra_id", quadraId)
-      .eq("data_reserva", selectedDate);
+      .eq("data_reserva", selectedDate)
+      .neq("status", "cancelada");
 
     if (error) {
       console.log("Erro reservas:", error.message);
@@ -182,6 +204,29 @@ export default function QuadraDetails() {
     setReservas(data || []);
   }
 
+  async function fetchFavoritoStatus() {
+    const user = await supabase.auth.getUser();
+
+    if (!user.data.user) {
+      setIsFavorite(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("favoritos")
+      .select("id")
+      .eq("user_id", user.data.user.id)
+      .eq("quadra_id", quadraId)
+      .maybeSingle();
+
+    if (error) {
+      console.log("Erro ao buscar favorito:", error.message);
+      return;
+    }
+
+    setIsFavorite(!!data);
+  }
+
   useEffect(() => {
     fetchQuadra();
   }, []);
@@ -189,6 +234,36 @@ export default function QuadraDetails() {
   useEffect(() => {
     fetchReservas();
   }, [selectedDate]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToTables(
+      [
+        { table: "quadras", filter: `id=eq.${quadraId}` },
+        { table: "quadras_imagens", filter: `quadra_id=eq.${quadraId}` },
+        { table: "reservas", filter: `quadra_id=eq.${quadraId}` },
+        { table: "favoritos", filter: `quadra_id=eq.${quadraId}` },
+      ],
+      () => {
+        fetchQuadra();
+        fetchReservas();
+        fetchFavoritoStatus();
+      }
+    );
+
+    return unsubscribe;
+  }, [quadraId, selectedDate]);
+
+  useEffect(() => {
+    if (horariosDisponiveisPorData.length === 0) return;
+
+    if (!horariosDisponiveisPorData.includes(selectedHour)) {
+      setSelectedHour(horariosDisponiveisPorData[0]);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    fetchFavoritoStatus();
+  }, [quadraId]);
 
   function isAvailable(hour: string) {
     const reservado = reservas.some(
@@ -204,11 +279,19 @@ export default function QuadraDetails() {
       setLoadingReserva(true);
 
       if (!quadra) return;
+      if (horariosDisponiveisPorData.length === 0) {
+        showModal({ title: "Indisponível", message: "Nao ha horarios disponiveis para hoje." });
+        return;
+      }
+      if (!horariosDisponiveisPorData.includes(selectedHour)) {
+        showModal({ title: "Indisponível", message: "Selecione um horario valido." });
+        return;
+      }
 
       const user = await supabase.auth.getUser();
 
       if (!user.data.user) {
-        Alert.alert("Erro", "Você precisa estar logado para reservar.");
+        showModal({ title: "Erro", message: "Você precisa estar logado para reservar." });
         return;
       }
 
@@ -222,20 +305,20 @@ export default function QuadraDetails() {
         .maybeSingle();
 
       if (checkError) {
-        Alert.alert("Erro", "Erro ao verificar disponibilidade.");
+        showModal({ title: "Erro", message: "Erro ao verificar disponibilidade." });
         return;
       }
 
       if (reservaExistente) {
-        Alert.alert("Indisponível", "Esse horário já foi reservado.");
+        showModal({ title: "Indisponível", message: "Esse horário já foi reservado." });
         return;
       }
 
       // SIMULA PAGAMENTO
       await simularPagamento(user.data.user.id, quadra.owner_id, quadra.preco);
 
-      const horaFim = `${Number(selectedHour.split(":")[0]) + 1}:00`;
-      
+      const horaInicioNumero = Number(selectedHour.split(":")[0]);
+      const horaFim = `${String(horaInicioNumero + 1).padStart(2, "0")}:00`;
 
       const { error } = await supabase.from("reservas").insert([
         {
@@ -249,16 +332,19 @@ export default function QuadraDetails() {
       ]);
 
       if (error) {
-        Alert.alert("Erro", "Não foi possível criar a reserva.");
+        showModal({ title: "Erro", message: "Não foi possível criar a reserva." });
         return;
       }
 
-      Alert.alert("Sucesso", "Reserva realizada com sucesso!", [
-        {
-          text: "Enviar mensagem",
-          onPress: async () => {
-            try {
-              const message = `Olá! Gostaria de confirmar uma reserva da quadra *${quadra.titulo}*.
+      showModal({
+        title: "Sucesso",
+        message: "Reserva realizada com sucesso!",
+        buttons: [
+          {
+            text: "Enviar mensagem",
+            onPress: async () => {
+              try {
+                const message = `Olá! Gostaria de confirmar uma reserva da quadra *${quadra.titulo}*.
 
 📍 Endereço: ${quadra.endereco}
 📅 Data: ${selectedDate}
@@ -267,24 +353,84 @@ export default function QuadraDetails() {
 
 Pode confirmar pra mim?`;
 
-              await sendWhatsAppMessage(quadra.telefone, message);
+                await sendWhatsAppMessage(quadra.telefone, message);
 
-              navigation.navigate("TabNavigator");
-            } catch (err) {
-              Alert.alert("Erro", "Não foi possível abrir o WhatsApp.");
-            }
+                navigation.navigate("TabNavigator");
+              } catch (err) {
+                showModal({ title: "Erro", message: "Não foi possível abrir o WhatsApp." });
+              }
+            },
           },
-        },
-        {
-          text: "Voltar",
-          style: "cancel",
-          onPress: () => navigation.navigate("TabNavigator"),
-        },
-      ]);
+          {
+            text: "Voltar",
+            style: "cancel",
+            onPress: () => navigation.navigate("TabNavigator"),
+          },
+        ],
+      });
     } catch (err) {
-      Alert.alert("Erro", "Ocorreu um erro inesperado.");
+      showModal({ title: "Erro", message: "Ocorreu um erro inesperado." });
     } finally {
       setLoadingReserva(false);
+    }
+  }
+
+  async function handleToggleFavorite() {
+    if (loadingFavorite) return;
+
+    const user = await supabase.auth.getUser();
+
+    if (!user.data.user) {
+      showModal({ title: "Erro", message: "Você precisa estar logado para favoritar." });
+      return;
+    }
+
+    const nextValue = !isFavorite;
+    setIsFavorite(nextValue);
+    setLoadingFavorite(true);
+
+    if (nextValue) {
+      const { error } = await supabase.from("favoritos").insert([
+        {
+          user_id: user.data.user.id,
+          quadra_id: quadraId,
+        },
+      ]);
+
+      setLoadingFavorite(false);
+
+      if (error) {
+        setIsFavorite(false);
+        showModal({ title: "Erro", message: "Não foi possível adicionar aos favoritos." });
+      }
+      return;
+    }
+
+    const { error } = await supabase
+      .from("favoritos")
+      .delete()
+      .eq("user_id", user.data.user.id)
+      .eq("quadra_id", quadraId);
+
+    setLoadingFavorite(false);
+
+    if (error) {
+      setIsFavorite(true);
+      showModal({ title: "Erro", message: "Não foi possível remover dos favoritos." });
+    }
+  }
+
+  async function handleShareQuadra() {
+    if (!quadra) return;
+
+    try {
+      await Share.share({
+        message: `Confira esta quadra no app:\n\n${quadra.titulo}\n${quadra.cidade}\n${quadra.endereco}\nR$ ${quadra.preco.toFixed(
+          0
+        )}/hora`,
+      });
+    } catch (error) {
+      showModal({ title: "Erro", message: "Não foi possível compartilhar esta quadra." });
     }
   }
 
@@ -321,6 +467,9 @@ Pode confirmar pra mim?`;
           imagens={imagens.map((img) => img.url).filter(Boolean)}
           disponivel={true}
           onBack={() => navigation.goBack()}
+          isFavorite={isFavorite}
+          onToggleFavorite={handleToggleFavorite}
+          onShare={handleShareQuadra}
         />
 
         <View style={styles.mainCard}>
@@ -339,11 +488,17 @@ Pode confirmar pra mim?`;
           />
 
           <HourSelector
-            horarios={horarios}
+            horarios={horariosDisponiveisPorData}
             selectedHour={selectedHour}
             onSelectHour={setSelectedHour}
             isAvailable={isAvailable}
           />
+
+          {horariosDisponiveisPorData.length === 0 && (
+            <Text style={{ color: colors.gray, marginTop: 8, marginBottom: 8 }}>
+              Nao ha horarios disponiveis para hoje.
+            </Text>
+          )}
 
           <Summary
             selectedHour={selectedHour}
