@@ -1,9 +1,15 @@
-import { View, FlatList, Text } from "react-native";
+import { View, FlatList, Text, StyleSheet } from "react-native";
 import CardFeed from "../../../components/CardFeed";
+import { colors } from "../../../constants/colors";
 
-export default function MainHome({ quadras, loading, favoriteIds, onToggleFavorite }: any) {
+export default function MainHome({ quadras, loading, favoriteIds, onToggleFavorite, ListHeaderComponent, refreshControl }: any) {
   if (loading) {
-    return <Text>Carregando...</Text>;
+    return (
+      <View style={{ flex: 1 }}>
+        {ListHeaderComponent && ListHeaderComponent}
+        <Text style={styles.loadingText}>Carregando...</Text>
+      </View>
+    );
   }
 
   return (
@@ -11,6 +17,14 @@ export default function MainHome({ quadras, loading, favoriteIds, onToggleFavori
       <FlatList
         data={quadras}
         keyExtractor={(item) => item.id}
+        ListHeaderComponent={ListHeaderComponent}
+        refreshControl={refreshControl}
+        contentContainerStyle={{ paddingBottom: 30 }}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Nenhuma quadra encontrada.</Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <CardFeed
             id={item.id}
@@ -27,3 +41,20 @@ export default function MainHome({ quadras, loading, favoriteIds, onToggleFavori
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingText: {
+    color: colors.text,
+    textAlign: "center",
+    marginTop: 20,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  emptyText: {
+    color: colors.text,
+    fontSize: 16,
+    textAlign: "center",
+  },
+});

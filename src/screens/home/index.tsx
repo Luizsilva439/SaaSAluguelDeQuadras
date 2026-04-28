@@ -1,9 +1,9 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, ActivityIndicator, RefreshControl, ScrollView } from "react-native";
+import { View, ActivityIndicator, RefreshControl } from "react-native";
 import { styles } from "./styles";
 import TopHome from "./components/topHome";
 import MainHome from "./Main";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { supabase } from "../../services/supabase";
 import { colors } from "../../constants/colors";
@@ -16,6 +16,17 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredQuadras = useMemo(() => {
+    if (!searchQuery) return quadras;
+    const lowerQuery = searchQuery.toLowerCase();
+    return quadras.filter(
+      (q) =>
+        q.titulo?.toLowerCase().includes(lowerQuery) ||
+        q.cidade?.toLowerCase().includes(lowerQuery)
+    );
+  }, [quadras, searchQuery]);
 
   async function loadQuadras() {
     const { data, error } = await supabase
@@ -141,31 +152,27 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.mainContent}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-      >
-        <TopHome />
-
-        {loading ? (
-          <View style={styles.loadingBox}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        ) : (
-          <MainHome
-            quadras={quadras}
-            favoriteIds={favoriteIds}
-            onToggleFavorite={handleToggleFavorite}
-          />
-        )}
-      </ScrollView>
+      <View style={[styles.scrollContent, { flex: 1, paddingBottom: 0 }]}>
+        <MainHome
+          quadras={filteredQuadras}
+          loading={loading}
+          favoriteIds={favoriteIds}
+          onToggleFavorite={handleToggleFavorite}
+          ListHeaderComponent={
+            <TopHome
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+            />
+          }
+        />
+      </View>
     </SafeAreaView>
   );
 }

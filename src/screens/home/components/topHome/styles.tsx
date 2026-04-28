@@ -23,8 +23,21 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: "center",
         backgroundColor: colors.secondary,
-        padding: 8,
-        paddingLeft: 12,
-        borderRadius: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    searchInput: {
+        flex: 1,
+        color: colors.text,
+        fontSize: 16,
+    },
+    clearButton: {
+        padding: 4,
     }
 })
