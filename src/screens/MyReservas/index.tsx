@@ -231,7 +231,7 @@ export default function MyReservas() {
           renderItem={({ item }) => {
             const isCancelled = item.status === "cancelada";
             const isCanceling = cancelingId === item.id;
-            const quadra = item.quadras?.[0];
+            const quadra = Array.isArray(item.quadras) ? item.quadras[0] : item.quadras;
 
             return (
               <View style={styles.card}>

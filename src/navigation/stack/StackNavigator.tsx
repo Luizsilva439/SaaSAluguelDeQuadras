@@ -9,6 +9,7 @@ import QuadraDetails from '../../screens/quadraDetails';
 import MyCourts from '../../screens/MyCourts';
 import QuadraReservas from "../../screens/QuadraReservas";
 import MyReservas from "../../screens/MyReservas";
+import AddFunds from '../../screens/addFunds';
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -20,6 +21,7 @@ export type RootStackParamList = {
   MyCourts: undefined;
   QuadraReservas: { quadraId: string };
   MyReservas: undefined;
+  AddFunds: { initialAmount?: string } | undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -70,6 +72,12 @@ export default function StackNavigator() {
         name="MyReservas"
         component={MyReservas}
         options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="AddFunds"
+        component={AddFunds}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
     </Stack.Navigator>
   );

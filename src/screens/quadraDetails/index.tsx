@@ -45,7 +45,10 @@ type Reserva = {
 
 // ====== FUNÇÕES DE DATA ======
 function formatDateValue(date: Date) {
-  return date.toISOString().split("T")[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function formatDateLabel(date: Date) {
@@ -122,7 +125,7 @@ export default function QuadraDetails() {
   const [loadingFavorite, setLoadingFavorite] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
+    formatLocalDateValue(new Date())
   );
 
   const [selectedHour, setSelectedHour] = useState("13:00");
@@ -314,6 +317,39 @@ export default function QuadraDetails() {
         return;
       }
 
+      // Check balance before proceeding
+      const { data: userData, error: userError } = await supabase
+        .from("Users")
+        .select("saldo")
+        .eq("id", user.data.user.id)
+        .single();
+
+      if (userError) {
+        showModal({ title: "Erro", message: "Erro ao verificar o saldo da carteira." });
+        return;
+      }
+
+      const saldoAtual = userData?.saldo || 0;
+
+      if (saldoAtual < quadra.preco) {
+        const missingAmount = quadra.preco - saldoAtual;
+        showModal({
+          title: "Saldo Insuficiente",
+          message: `Você precisa de mais R$ ${missingAmount.toFixed(2)} para confirmar a reserva dessa quadra.`,
+          buttons: [
+            {
+              text: "Adicionar Fundos",
+              onPress: () => navigation.navigate("AddFunds", { initialAmount: missingAmount.toFixed(2).replace('.', ',') }),
+            },
+            {
+              text: "Cancelar",
+              style: "cancel",
+            },
+          ],
+        });
+        return;
+      }
+
       // SIMULA PAGAMENTO
       await simularPagamento(user.data.user.id, quadra.owner_id, quadra.preco);
 
@@ -368,8 +404,8 @@ Pode confirmar pra mim?`;
           },
         ],
       });
-    } catch (err) {
-      showModal({ title: "Erro", message: "Ocorreu um erro inesperado." });
+    } catch (err: any) {
+      showModal({ title: "Erro", message: err.message || "Ocorreu um erro inesperado." });
     } finally {
       setLoadingReserva(false);
     }

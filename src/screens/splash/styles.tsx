@@ -25,8 +25,8 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   logo: {
-    width: 250,
-    height: 250,
+    width: 400,
+    height: 400,
   },
   title: {
     marginTop: -10, // Aproxima o texto da imagem da logo, já que ela pode ter um espaço vazio em volta

@@ -65,7 +65,6 @@ export default function SplashScreen() {
         pointerEvents="none"
       >
         <Image source={logoImg} style={styles.logo} resizeMode="contain" />
-        <Text style={styles.title}>JarenaZ</Text>
       </Animated.View>
     </View>
   );
