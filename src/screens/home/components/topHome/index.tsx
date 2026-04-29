@@ -1,5 +1,5 @@
 import { colors } from "../../../../constants/colors";
-import { View, Pressable, TextInput } from "react-native";
+import { View, Pressable, TextInput, Image } from "react-native";
 import ProfileComponent from "../../../../components/ProfileComponent";
 import { styles } from "./styles";
 import Title from "../../../../components/Title";
@@ -20,9 +20,9 @@ export default function TopHome({ searchQuery, setSearchQuery }: Props) {
         <View style={styles.top}>
             <View style={styles.header}>
                 <View style={styles.header_content}>
-                    <Title
-                        title={strings.projectName}
-                        size={20}
+                    <Image
+                        source={require('../../../../assets/header_feed.png')}
+                        style={{ height: 40, width: 160 }}
                     />
                 </View>
             </View>

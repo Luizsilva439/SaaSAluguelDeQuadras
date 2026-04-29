@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'; 
+import { StyleSheet } from 'react-native';
 import { colors } from '../../../../constants/colors';
 
 export const styles = StyleSheet.create({
@@ -14,16 +14,16 @@ export const styles = StyleSheet.create({
     top: {
         paddingVertical: 16
     },
-    defaultTitle:{
+    defaultTitle: {
         marginVertical: 20,
         flexDirection: 'row',
         alignItems: 'center',
     },
-    searchBar:{
+    searchBar: {
         flexDirection: 'row',
         alignItems: "center",
         backgroundColor: colors.secondary,
-        paddingVertical: 10,
+        paddingVertical: 5,
         paddingHorizontal: 16,
         borderRadius: 12,
         shadowColor: "#000",
