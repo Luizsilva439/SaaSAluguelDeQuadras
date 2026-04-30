@@ -120,6 +120,7 @@ export default function QuadraDetails() {
   const [imagens, setImagens] = useState<QuadraImagem[]>([]);
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingTimes, setLoadingTimes] = useState(true);
   const [loadingReserva, setLoadingReserva] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [loadingFavorite, setLoadingFavorite] = useState(false);
@@ -151,14 +152,34 @@ export default function QuadraDetails() {
     "22:00",
   ];
 
+  // Verifica se um slot de 1 hora (ex: 18:00 até 19:00) está livre
+  function isTimeSlotReserved(hour: string) {
+    const slotStart = Number(hour.split(":")[0]);
+    const slotEnd = slotStart + 1; // Assumindo slots de 1 hora gerados pelo grid
+
+    return reservas.some((reserva) => {
+      if (reserva.status === "cancelada") return false;
+
+      const reservaStart = Number(reserva.hora_inicio.split(":")[0]);
+      const reservaEnd = Number(reserva.hora_fim.split(":")[0]);
+
+      // Verifica intersecção de horários:
+      // O slot sobrepõe com a reserva se:
+      // Início do slot for menor que o Fim da reserva E Fim do slot for maior que o Início da reserva
+      return slotStart < reservaEnd && slotEnd > reservaStart;
+    });
+  }
+
   const now = new Date();
   const todayValue = formatLocalDateValue(now);
   const currentDecimalHour = now.getHours() + now.getMinutes() / 60;
 
-  const horariosDisponiveisPorData =
+  // Filtra horários que já passaram (se for hoje) e remove os horários que já estão reservados (sobreposição)
+  const horariosDisponiveisPorData = (
     selectedDate === todayValue
       ? horarios.filter((hour) => Number(hour.split(":")[0]) > currentDecimalHour)
-      : horarios;
+      : horarios
+  ).filter((hour) => !isTimeSlotReserved(hour));
 
   async function fetchQuadra() {
     setLoading(true);
@@ -201,10 +222,13 @@ export default function QuadraDetails() {
 
     if (error) {
       console.log("Erro reservas:", error.message);
+      showModal({ title: "Erro", message: "Não foi possível carregar os horários." });
+      setLoadingTimes(false);
       return;
     }
 
     setReservas(data || []);
+    setLoadingTimes(false);
   }
 
   async function fetchFavoritoStatus() {
@@ -262,20 +286,13 @@ export default function QuadraDetails() {
     if (!horariosDisponiveisPorData.includes(selectedHour)) {
       setSelectedHour(horariosDisponiveisPorData[0]);
     }
-  }, [selectedDate]);
+  }, [selectedDate, reservas]);
 
   useEffect(() => {
     fetchFavoritoStatus();
   }, [quadraId]);
 
-  function isAvailable(hour: string) {
-    const reservado = reservas.some(
-      (reserva) =>
-        reserva.hora_inicio === hour && reserva.status !== "cancelada"
-    );
 
-    return !reservado;
-  }
 
   async function handleConfirmReserva() {
     try {
@@ -298,22 +315,30 @@ export default function QuadraDetails() {
         return;
       }
 
-      const { data: reservaExistente, error: checkError } = await supabase
+      // Busca as reservas do dia para garantir que ninguém pegou o horário neste intervalo
+      const { data: reservasDoDia, error: checkError } = await supabase
         .from("reservas")
-        .select("id")
+        .select("hora_inicio, hora_fim, status")
         .eq("quadra_id", quadra.id)
         .eq("data_reserva", selectedDate)
-        .eq("hora_inicio", selectedHour)
-        .neq("status", "cancelada")
-        .maybeSingle();
+        .neq("status", "cancelada");
 
       if (checkError) {
         showModal({ title: "Erro", message: "Erro ao verificar disponibilidade." });
         return;
       }
 
-      if (reservaExistente) {
-        showModal({ title: "Indisponível", message: "Esse horário já foi reservado." });
+      const slotStart = Number(selectedHour.split(":")[0]);
+      const slotEnd = slotStart + 1;
+
+      const sobreposicao = reservasDoDia?.some((reserva) => {
+        const reservaStart = Number(reserva.hora_inicio.split(":")[0]);
+        const reservaEnd = Number(reserva.hora_fim.split(":")[0]);
+        return slotStart < reservaEnd && slotEnd > reservaStart;
+      });
+
+      if (sobreposicao) {
+        showModal({ title: "Indisponível", message: "Esse horário já foi reservado por outra pessoa." });
         return;
       }
 
@@ -520,20 +545,31 @@ Pode confirmar pra mim?`;
           <DateSelector
             datas={datas}
             selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
+            onSelectDate={(date) => {
+              if (date !== selectedDate) {
+                setLoadingTimes(true);
+                setSelectedDate(date);
+              }
+            }}
           />
 
-          <HourSelector
-            horarios={horariosDisponiveisPorData}
-            selectedHour={selectedHour}
-            onSelectHour={setSelectedHour}
-            isAvailable={isAvailable}
-          />
+          {loadingTimes ? (
+            <ActivityIndicator size="large" color={colors.primary} style={{ marginVertical: 32 }} />
+          ) : (
+            <>
+              <HourSelector
+                horarios={horariosDisponiveisPorData}
+                selectedHour={selectedHour}
+                onSelectHour={setSelectedHour}
+                isAvailable={(hour) => !isTimeSlotReserved(hour)}
+              />
 
-          {horariosDisponiveisPorData.length === 0 && (
-            <Text style={{ color: colors.gray, marginTop: 8, marginBottom: 8 }}>
-              Nao ha horarios disponiveis para hoje.
-            </Text>
+              {horariosDisponiveisPorData.length === 0 && (
+                <Text style={{ color: colors.gray, marginTop: 8, marginBottom: 8 }}>
+                  Nao ha horarios disponiveis para hoje.
+                </Text>
+              )}
+            </>
           )}
 
           <Summary
