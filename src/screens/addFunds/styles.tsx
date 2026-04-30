@@ -1,106 +1,54 @@
-import { StyleSheet } from 'react-native';
-import { colors } from '../../constants/colors';
+import { StyleSheet } from "react-native";
+import { colors } from "../../constants/colors";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: "#0F241F",
+    paddingTop: 50,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.secondary,
-  },
-  backButton: {
-    marginRight: 15,
-  },
+
   content: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.secondary,
-    borderRadius: 12,
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    marginBottom: 20,
+    paddingTop: 10,
   },
-  currencyPrefix: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginRight: 10,
+
+  logoArea: {
+    alignItems: "center",
+    marginBottom: 10,
   },
-  input: {
-    flex: 1,
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: 'bold',
+
+  logoText: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#00C287",
+    letterSpacing: 1,
   },
-  presetContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 30,
-  },
-  presetButton: {
-    flex: 1,
-    backgroundColor: colors.secondary,
-    paddingVertical: 12,
-    marginHorizontal: 4,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  presetButtonText: {
-    color: colors.primary,
+
+  sectionTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "600",
+    color: colors.text,
+    marginTop: 20,
+    marginBottom: 12,
   },
-  actionButton: {
-    backgroundColor: colors.primary,
+
+  mainButton: {
+    backgroundColor: "#00C287",
     paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 20,
   },
-  actionButtonText: {
-    color: colors.dark,
+
+  mainButtonDisabled: {
+    opacity: 0.6,
+  },
+
+  mainButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  qrContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mockQrCode: {
-    width: 250,
-    height: 250,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 30,
-    padding: 20,
-  },
-  qrText: {
-    color: colors.dark,
-    fontSize: 14,
-    marginTop: 10,
-    fontWeight: '600',
-  },
-  simulateButton: {
-    width: '100%',
-    marginBottom: 15,
-  },
-  cancelButton: {
-    paddingVertical: 12,
-  },
-  cancelButtonText: {
-    color: colors.gray,
-    fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "700",
+    color: "#0F241F",
   },
 });

@@ -28,7 +28,10 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function StackNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="Splash" screenOptions={{
+      contentStyle: { backgroundColor: "#0F241F" },
+      headerShown: false
+    }}>
 
       <Stack.Screen
         name="Auth"

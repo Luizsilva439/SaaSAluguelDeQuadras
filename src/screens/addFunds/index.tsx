@@ -1,147 +1,176 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ActivityIndicator, SafeAreaView } from 'react-native';
-import { styles } from './styles';
-import Title from '../../components/Title';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../constants/colors';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { supabase } from '../../services/supabase';
-import { useAppModal } from '../../contexts/AppModalContext';
+import React, { useEffect, useMemo, useState } from "react";
+import { SafeAreaView, View, Text, Pressable, ActivityIndicator } from "react-native";
+import { styles } from "./styles";
+import { useNavigation } from "@react-navigation/native";
+import { supabase } from "../../services/supabase";
+import { useAppModal } from "../../contexts/AppModalContext";
+import { colors } from "../../constants/colors";
+
+import Header from "./components/Header";
+import BalanceCard from "./components/BalanceCard";
+import PresetAmounts from "./components/PresetAmounts";
+import CustomAmountInput from "./components/CustomAmountInput";
+import PaymentMethod from "./components/PaymentMethod";
+import SecureFooter from "./components/SecureFooter";
 
 export default function AddFunds() {
   const navigation = useNavigation();
-  const route = useRoute<any>();
   const { showModal } = useAppModal();
-  
-  const initialAmount = route.params?.initialAmount || '';
-  const [amount, setAmount] = useState(initialAmount);
-  const [showQrCode, setShowQrCode] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
-  const presets = ['50,00', '100,00', '150,00'];
+  const [saldo, setSaldo] = useState<number>(0);
 
-  const handleGenerateQR = () => {
-    const value = parseFloat(amount.replace(',', '.'));
-    if (isNaN(value) || value <= 0) {
-      showModal({ title: 'Erro', message: 'Digite um valor válido para depósito.' });
+  // valores fixos só pra mostrar na tela (você pode puxar isso do banco depois)
+  const [totalAdded] = useState<number>(320);
+  const [totalUsed] = useState<number>(200);
+
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [customAmount, setCustomAmount] = useState<string>("");
+
+  const [loading, setLoading] = useState(false);
+
+  const presets = useMemo(() => [20, 50, 100, 150, 200, 300], []);
+
+  function formatMoney(value: number) {
+    return value.toFixed(2).replace(".", ",");
+  }
+
+  function getFinalAmount() {
+    if (selectedAmount) return selectedAmount;
+
+    const parsed = parseFloat(customAmount.replace(",", "."));
+    if (isNaN(parsed)) return 0;
+
+    return parsed;
+  }
+
+  async function fetchSaldo() {
+    try {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) return;
+
+      const { data, error } = await supabase
+        .from("Users")
+        .select("saldo")
+        .eq("id", user.data.user.id)
+        .single();
+
+      if (error) throw error;
+
+      setSaldo(data?.saldo || 0);
+    } catch (err: any) {
+      showModal({
+        title: "Erro",
+        message: err.message || "Erro ao carregar saldo.",
+      });
+    }
+  }
+
+  async function handleAddFunds() {
+    const value = getFinalAmount();
+
+    if (!value || value <= 0) {
+      showModal({
+        title: "Erro",
+        message: "Selecione ou digite um valor válido.",
+      });
       return;
     }
-    setShowQrCode(true);
-  };
 
-  const simulatePayment = async () => {
-    setIsProcessing(true);
-    
-    // Simulate network/processing delay
-    setTimeout(async () => {
-      try {
-        const user = await supabase.auth.getUser();
-        if (!user.data.user) throw new Error("Usuário não autenticado");
+    setLoading(true);
 
-        const depositValue = parseFloat(amount.replace(',', '.'));
+    try {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("Usuário não autenticado.");
 
-        // Fetch current saldo
-        const { data: userData, error: fetchError } = await supabase
-          .from('Users')
-          .select('saldo')
-          .eq('id', user.data.user.id)
-          .single();
+      const { data: userData, error: fetchError } = await supabase
+        .from("Users")
+        .select("saldo")
+        .eq("id", user.data.user.id)
+        .single();
 
-        if (fetchError) throw fetchError;
+      if (fetchError) throw fetchError;
 
-        const currentSaldo = userData?.saldo || 0;
-        const newSaldo = currentSaldo + depositValue;
+      const currentSaldo = userData?.saldo || 0;
+      const newSaldo = currentSaldo + value;
 
-        // Update saldo
-        const { error: updateError } = await supabase
-          .from('Users')
-          .update({ saldo: newSaldo })
-          .eq('id', user.data.user.id);
+      const { error: updateError } = await supabase
+        .from("Users")
+        .update({ saldo: newSaldo })
+        .eq("id", user.data.user.id);
 
-        if (updateError) throw updateError;
+      if (updateError) throw updateError;
 
-        setIsProcessing(false);
-        showModal({ title: 'Sucesso!', message: `Depósito de R$ ${depositValue.toFixed(2)} recebido com sucesso.` });
-        
-        // Go back to profile
-        navigation.goBack();
-      } catch (error: any) {
-        setIsProcessing(false);
-        showModal({ title: 'Erro', message: error.message || 'Falha ao realizar depósito.' });
-      }
-    }, 1500); // 1.5 seconds delay
-  };
+      setSaldo(newSaldo);
+      setSelectedAmount(null);
+      setCustomAmount("");
+
+      showModal({
+        title: "Sucesso!",
+        message: `Depósito de R$ ${formatMoney(value)} realizado com sucesso.`,
+      });
+
+      navigation.goBack();
+    } catch (err: any) {
+      showModal({
+        title: "Erro",
+        message: err.message || "Falha ao adicionar saldo.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchSaldo();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </Pressable>
-        <Title title="Adicionar Fundos" size={20} />
-      </View>
+      <Header onBack={() => navigation.goBack()} />
 
       <View style={styles.content}>
-        {!showQrCode ? (
-          <>
-            <View style={styles.inputContainer}>
-              <Text style={styles.currencyPrefix}>R$</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="0,00"
-                placeholderTextColor={colors.gray}
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={setAmount}
-              />
-            </View>
+        <View style={styles.logoArea}>
+          <Text style={styles.logoText}>Jarenaz</Text>
+        </View>
 
-            <View style={styles.presetContainer}>
-              {presets.map((preset) => (
-                <Pressable
-                  key={preset}
-                  style={styles.presetButton}
-                  onPress={() => setAmount(preset)}
-                >
-                  <Text style={styles.presetButtonText}>R$ {preset}</Text>
-                </Pressable>
-              ))}
-            </View>
+        <BalanceCard saldo={saldo} totalAdded={totalAdded} totalUsed={totalUsed} />
 
-            <Pressable style={styles.actionButton} onPress={handleGenerateQR}>
-              <Text style={styles.actionButtonText}>Gerar QR Code de Depósito</Text>
-            </Pressable>
-          </>
-        ) : (
-          <View style={styles.qrContainer}>
-            <Title title={`Valor a depositar: R$ ${parseFloat(amount.replace(',', '.')).toFixed(2)}`} size={18} marginBottom={20} />
-            
-            <View style={styles.mockQrCode}>
-              <Ionicons name="qr-code-outline" size={150} color={colors.dark} />
-              <Text style={styles.qrText}>Escaneie este código</Text>
-            </View>
+        <Text style={styles.sectionTitle}>Adicionar saldo</Text>
 
-            <Pressable 
-              style={[styles.actionButton, styles.simulateButton]} 
-              onPress={simulatePayment}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <ActivityIndicator color={colors.dark} />
-              ) : (
-                <Text style={styles.actionButtonText}>Simular Leitura do QR Code</Text>
-              )}
-            </Pressable>
+        <PresetAmounts
+          presets={presets}
+          selected={selectedAmount}
+          onSelect={(value) => {
+            setSelectedAmount(value);
+            setCustomAmount("");
+          }}
+        />
 
-            <Pressable 
-              style={styles.cancelButton} 
-              onPress={() => setShowQrCode(false)}
-              disabled={isProcessing}
-            >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </Pressable>
-          </View>
-        )}
+        <CustomAmountInput
+          value={customAmount}
+          onChange={(text) => {
+            setCustomAmount(text);
+            setSelectedAmount(null);
+          }}
+        />
+
+        <Text style={styles.sectionTitle}>Forma de pagamento</Text>
+
+        <PaymentMethod />
+
+        <Pressable
+          style={[styles.mainButton, loading && styles.mainButtonDisabled]}
+          onPress={handleAddFunds}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color={colors.dark} />
+          ) : (
+            <Text style={styles.mainButtonText}>Adicionar saldo</Text>
+          )}
+        </Pressable>
+
+        <SecureFooter />
       </View>
     </SafeAreaView>
   );
