@@ -4,7 +4,7 @@ import TextLink from '../../components/TextLink';
 
 import { useEffect, useState } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, TextInput } from "react-native";
+import { View, TextInput, Image } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { colors } from '../../constants/colors';
 import { styles } from './styles';
@@ -43,13 +43,23 @@ export default function Auth() {
       <StatusBar style="light" />
       <View style={styles.container}>
         <View style={styles.name_project}>
-          <Title title={strings.projectName} size={18} />
+          <Image
+            source={require('../../assets/logo.png')}
+            style={{
+              width: 400,
+              height: 400,
+              resizeMode: 'contain'
+            }}
+          />
         </View>
         <View style={styles.content}>
-          <Title
-            title='Bem-vindo de volta'
-            marginBottom={24}
-            size={22} />
+          <View style={styles.text_welcome}>
+            <Title
+              title='Bem-vindo'
+              marginBottom={24}
+              size={22} />
+          </View>
+
 
           <View style={{ gap: 24 }}>
             <TextInput

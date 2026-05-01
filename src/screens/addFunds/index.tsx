@@ -18,6 +18,7 @@ export default function AddFunds() {
   const { showModal } = useAppModal();
 
   const [saldo, setSaldo] = useState<number>(0);
+  const [isLoadingSaldo, setIsLoadingSaldo] = useState<boolean>(true);
 
   // valores fixos só pra mostrar na tela (você pode puxar isso do banco depois)
   const [totalAdded] = useState<number>(320);
@@ -44,6 +45,7 @@ export default function AddFunds() {
   }
 
   async function fetchSaldo() {
+    setIsLoadingSaldo(true);
     try {
       const user = await supabase.auth.getUser();
       if (!user.data.user) return;
@@ -62,6 +64,8 @@ export default function AddFunds() {
         title: "Erro",
         message: err.message || "Erro ao carregar saldo.",
       });
+    } finally {
+      setIsLoadingSaldo(false);
     }
   }
 
@@ -133,7 +137,7 @@ export default function AddFunds() {
           <Text style={styles.logoText}>Jarenaz</Text>
         </View>
 
-        <BalanceCard saldo={saldo} totalAdded={totalAdded} totalUsed={totalUsed} />
+        <BalanceCard saldo={saldo} totalAdded={totalAdded} totalUsed={totalUsed} isLoading={isLoadingSaldo} />
 
         <Text style={styles.sectionTitle}>Adicionar saldo</Text>
 

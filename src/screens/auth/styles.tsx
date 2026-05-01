@@ -1,21 +1,23 @@
 import { StyleSheet } from 'react-native';
-import {colors} from '../../constants/colors';
+import { colors } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  name_project:{
-    alignItems:'center',
-    marginBottom: 10
+  name_project: {
+    alignItems: 'center',
+    justifyContent: "center",
+    marginTop: 20,
+    marginBottom: -20,
   },
-  content:{
-    flex:1,
-    margin: 15,
-    marginTop: 50,
+  content: {
+    flex: 1,
+    marginHorizontal: 20,
+    justifyContent: 'center',
   },
-  input:{
+  input: {
     backgroundColor: colors.secondary,
     height: 60,
     fontSize: 16,
@@ -23,13 +25,19 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     color: colors.text
   },
-  link:{
+  link: {
     alignItems: 'center',
+    marginTop: -8,
   },
-  esqueceuSenha:{
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+  esqueceuSenha: {
     flex: 1,
-
+    alignItems: 'center',
+    justifyContent: "flex-end",
+    marginTop: 30,
+    marginBottom: 20,
+  },
+  text_welcome: {
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 });

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { styles } from "./stylesBalanceCard";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -7,9 +7,10 @@ type Props = {
     saldo: number;
     totalAdded: number;
     totalUsed: number;
+    isLoading?: boolean;
 };
 
-export default function BalanceCard({ saldo, totalAdded, totalUsed }: Props) {
+export default function BalanceCard({ saldo, totalAdded, totalUsed, isLoading }: Props) {
     function formatMoney(value: number) {
         return value.toFixed(2).replace(".", ",");
     }
@@ -17,7 +18,11 @@ export default function BalanceCard({ saldo, totalAdded, totalUsed }: Props) {
     return (
         <View style={styles.card}>
             <Text style={styles.label}>Saldo disponível</Text>
-            <Text style={styles.value}>R$ {formatMoney(saldo)}</Text>
+            {isLoading ? (
+                <ActivityIndicator size="small" color="#00C287" style={{ marginTop: 4, alignSelf: 'flex-start' }} />
+            ) : (
+                <Text style={styles.value}>R$ {formatMoney(saldo)}</Text>
+            )}
 
             <View style={styles.row}>
                 <View style={styles.item}>
