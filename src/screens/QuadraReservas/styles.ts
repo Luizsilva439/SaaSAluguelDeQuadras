@@ -16,13 +16,12 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // HEADER
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 18,
-    marginTop: 40
+    marginTop: 40,
   },
 
   backButton: {
@@ -36,11 +35,10 @@ export const styles = StyleSheet.create({
 
   title: {
     color: colors.text,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "800",
   },
 
-  // EMPTY
   emptyContainer: {
     marginTop: 90,
     alignItems: "center",
@@ -65,7 +63,6 @@ export const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // CARD RESERVA
   card: {
     backgroundColor: colors.secondary,
     borderRadius: 18,
@@ -76,8 +73,8 @@ export const styles = StyleSheet.create({
 
   cardTop: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
 
@@ -85,35 +82,62 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    flex: 1,
+    marginRight: 10,
   },
 
   clientName: {
     color: colors.text,
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
+    flexShrink: 1,
   },
 
   statusBadge: {
-    backgroundColor: "rgba(0, 194, 110, 0.12)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "rgba(0, 194, 110, 0.3)",
   },
 
   statusBadgeText: {
-    color: colors.primary,
     fontSize: 12,
     fontWeight: "800",
   },
 
-  statusCancelled: {
+  statusPendente: {
+    backgroundColor: "rgba(255, 193, 7, 0.12)",
+    borderColor: "rgba(255, 193, 7, 0.3)",
+  },
+
+  statusPendenteText: {
+    color: "#FFC107",
+  },
+
+  statusCheckin: {
+    backgroundColor: "rgba(0, 194, 110, 0.12)",
+    borderColor: "rgba(0, 194, 110, 0.3)",
+  },
+
+  statusCheckinText: {
+    color: "#00C287",
+  },
+
+  statusCheckout: {
+    backgroundColor: "rgba(100, 150, 255, 0.12)",
+    borderColor: "rgba(100, 150, 255, 0.3)",
+  },
+
+  statusCheckoutText: {
+    color: "#6496FF",
+  },
+
+  statusError: {
     backgroundColor: "rgba(255, 82, 82, 0.12)",
     borderColor: "rgba(255, 82, 82, 0.3)",
   },
 
-  statusCancelledText: {
+  statusErrorText: {
     color: "#ff6666",
   },
 
@@ -121,6 +145,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
+    marginBottom: 12,
   },
 
   infoItem: {
@@ -135,18 +160,51 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  cancelButton: {
-    marginTop: 14,
-    backgroundColor: "rgba(255, 82, 82, 0.12)",
-    borderColor: "rgba(255, 82, 82, 0.25)",
+  timesContainer: {
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+
+  timeText: {
+    color: colors.text,
+    fontSize: 13,
+    marginBottom: 4,
+  },
+
+  actionsGrid: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
+  actionButton: {
+    flex: 1,
     borderWidth: 1,
     borderRadius: 12,
     paddingVertical: 11,
     alignItems: "center",
+    justifyContent: "center",
+  },
+
+  cancelButton: {
+    backgroundColor: "rgba(255, 82, 82, 0.12)",
+    borderColor: "rgba(255, 82, 82, 0.3)",
   },
 
   cancelButtonText: {
     color: "#ff6666",
+    fontWeight: "800",
+    fontSize: 13,
+  },
+
+  finalizeButton: {
+    backgroundColor: "rgba(100, 150, 255, 0.12)",
+    borderColor: "rgba(100, 150, 255, 0.3)",
+  },
+
+  finalizeButtonText: {
+    color: "#6496FF",
     fontWeight: "800",
     fontSize: 13,
   },

@@ -138,6 +138,9 @@ export default function MyCourts() {
               onPress={() =>
                 navigation.navigate("QuadraReservas", { quadraId: item.id })
               }
+              onEdit={() =>
+                navigation.navigate("EditCourt", { quadraId: item.id })
+              }
             />
           )}
         />

@@ -10,6 +10,7 @@ type Props = {
   preco: number;
   imagem?: string;
   onPress: () => void;
+  onEdit?: () => void;
 };
 
 export default function CardMyCourt({
@@ -18,6 +19,7 @@ export default function CardMyCourt({
   preco,
   imagem,
   onPress,
+  onEdit,
 }: Props) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
@@ -37,6 +39,13 @@ export default function CardMyCourt({
           <Ionicons name="shield-checkmark" size={14} color={colors.text} />
           <Text style={styles.badgeText}>Minha quadra</Text>
         </View>
+
+        {/* EDIT BUTTON */}
+        {onEdit && (
+          <Pressable style={styles.editBadge} onPress={onEdit}>
+            <Ionicons name="pencil-outline" size={16} color={colors.text} />
+          </Pressable>
+        )}
       </View>
 
       {/* CONTEÚDO */}
@@ -123,6 +132,15 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 12,
     fontWeight: "700",
+  },
+
+  editBadge: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 8,
+    borderRadius: 999,
   },
 
   content: {

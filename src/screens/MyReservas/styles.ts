@@ -92,26 +92,50 @@ export const styles = StyleSheet.create({
   },
 
   statusBadge: {
-    backgroundColor: "rgba(0, 194, 110, 0.12)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "rgba(0, 194, 110, 0.3)",
   },
 
   statusBadgeText: {
-    color: colors.primary,
     fontSize: 12,
     fontWeight: "800",
   },
 
-  statusCancelled: {
+  statusPendente: {
+    backgroundColor: "rgba(255, 193, 7, 0.12)",
+    borderColor: "rgba(255, 193, 7, 0.3)",
+  },
+
+  statusPendenteText: {
+    color: "#FFC107",
+  },
+
+  statusCheckin: {
+    backgroundColor: "rgba(0, 194, 110, 0.12)",
+    borderColor: "rgba(0, 194, 110, 0.3)",
+  },
+
+  statusCheckinText: {
+    color: "#00C287",
+  },
+
+  statusCheckout: {
+    backgroundColor: "rgba(100, 150, 255, 0.12)",
+    borderColor: "rgba(100, 150, 255, 0.3)",
+  },
+
+  statusCheckoutText: {
+    color: "#6496FF",
+  },
+
+  statusError: {
     backgroundColor: "rgba(255, 82, 82, 0.12)",
     borderColor: "rgba(255, 82, 82, 0.3)",
   },
 
-  statusCancelledText: {
+  statusErrorText: {
     color: "#ff6666",
   },
 
@@ -145,36 +169,68 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  actionsRow: {
-    marginTop: 14,
-    flexDirection: "row",
-    gap: 10,
+  extraInfoContainer: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: 10,
   },
 
-  detailsButton: {
+  extraInfoTitle: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+
+  extraInfoText: {
+    color: colors.gray,
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  actionsGrid: {
+    marginTop: 14,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+
+  actionButton: {
     flex: 1,
-    backgroundColor: "rgba(0, 194, 110, 0.12)",
-    borderColor: "rgba(0, 194, 110, 0.25)",
+    minWidth: "45%",
     borderWidth: 1,
     borderRadius: 12,
     paddingVertical: 11,
     alignItems: "center",
+    justifyContent: "center",
   },
 
-  detailsButtonText: {
+  checkinButton: {
+    backgroundColor: "rgba(0, 194, 110, 0.12)",
+    borderColor: "rgba(0, 194, 110, 0.3)",
+  },
+
+  checkinButtonText: {
     color: colors.primary,
     fontWeight: "800",
     fontSize: 13,
   },
 
+  detailsButton: {
+    backgroundColor: "rgba(100, 150, 255, 0.12)",
+    borderColor: "rgba(100, 150, 255, 0.3)",
+  },
+
+  detailsButtonText: {
+    color: "#6496FF",
+    fontWeight: "800",
+    fontSize: 13,
+  },
+
   cancelButton: {
-    flex: 1,
     backgroundColor: "rgba(255, 82, 82, 0.12)",
-    borderColor: "rgba(255, 82, 82, 0.25)",
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 11,
-    alignItems: "center",
+    borderColor: "rgba(255, 82, 82, 0.3)",
   },
 
   cancelButtonText: {
