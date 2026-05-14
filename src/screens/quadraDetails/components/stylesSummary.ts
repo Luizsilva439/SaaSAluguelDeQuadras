@@ -13,7 +13,8 @@ export const styles = StyleSheet.create({
   summaryCard: {
     marginTop: 10,
     backgroundColor: "#111f1a",
-    borderRadius: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     padding: 14,
     borderWidth: 1,
     borderColor: "#1f2e29",

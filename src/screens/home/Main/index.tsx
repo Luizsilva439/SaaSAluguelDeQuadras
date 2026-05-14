@@ -17,6 +17,7 @@ export default function MainHome({ quadras, loading, favoriteIds, onToggleFavori
       <FlatList
         data={quadras}
         keyExtractor={(item) => item.id}
+        extraData={favoriteIds}
         ListHeaderComponent={ListHeaderComponent}
         refreshControl={refreshControl}
         contentContainerStyle={{ paddingBottom: 30 }}
