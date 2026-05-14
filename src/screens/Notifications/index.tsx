@@ -14,6 +14,7 @@ import { supabase } from "../../services/supabase";
 import { colors } from "../../constants/colors";
 import { styles } from "./styles";
 import { subscribeToTables } from "../../services/realtime";
+import { useAppModal } from "../../contexts/AppModalContext";
 
 type Notification = {
   id: string;
@@ -54,6 +55,7 @@ function getIconForType(type: string) {
 
 export default function Notifications() {
   const navigation = useNavigation<any>();
+  const { showModal } = useAppModal();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,21 +123,21 @@ export default function Notifications() {
   }
 
   async function handleMarkAsRead(id: string, isRead: boolean) {
-    if (isRead) return;
+    // Atualiza otimisticamente a UI
+    if (!isRead) {
+      setNotifications((prev) =>
+        prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
+      );
 
-    // Otimisticamente atualiza a UI
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
-    );
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("id", id);
 
-    const { error } = await supabase
-      .from("notifications")
-      .update({ read: true })
-      .eq("id", id);
-
-    if (error) {
-      // Reverte em caso de erro
-      fetchNotifications(false);
+      if (error) {
+        // Reverte em caso de erro
+        fetchNotifications(false);
+      }
     }
   }
 
@@ -155,9 +157,35 @@ export default function Notifications() {
     }
   }
 
-  function handleNotificationPress(notification: Notification) {
+  async function handleNotificationPress(notification: Notification) {
     handleMarkAsRead(notification.id, notification.read);
     
+    if (notification.type === "cancelada") {
+      // Busca o motivo do cancelamento diretamente da reserva no banco
+      if (notification.reserva_id) {
+        const { data } = await supabase
+          .from("reservas")
+          .select("motivo_cancelamento, data_reserva, hora_inicio, hora_fim")
+          .eq("id", notification.reserva_id)
+          .single();
+
+        if (data?.motivo_cancelamento) {
+          showModal({
+            title: "Reserva Cancelada",
+            message: `${notification.message}\n\n📅 Data: ${data.data_reserva}\n🕐 Horário: ${data.hora_inicio?.slice(0, 5)} - ${data.hora_fim?.slice(0, 5)}\n\n💬 Motivo: "${data.motivo_cancelamento}"`,
+          });
+          return;
+        }
+      }
+
+      // Fallback: mostra a mensagem da notificação
+      showModal({
+        title: "Reserva Cancelada",
+        message: notification.message,
+      });
+      return;
+    }
+
     // Navegar para detalhes da quadra ou reservas se aplicável
     if (notification.quadra_id) {
       navigation.navigate("QuadraReservas", { quadraId: notification.quadra_id });
@@ -200,6 +228,7 @@ export default function Notifications() {
         <FlatList
           data={notifications}
           keyExtractor={(item) => item.id}
+          extraData={notifications}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 30 }}
           refreshControl={
@@ -211,6 +240,7 @@ export default function Notifications() {
           }
           renderItem={({ item }) => {
             const iconConfig = getIconForType(item.type);
+            const isCancelada = item.type === "cancelada";
 
             return (
               <Pressable
@@ -225,7 +255,12 @@ export default function Notifications() {
                   <Text style={[styles.notificationTitle, !item.read && styles.textUnread]}>
                     {item.title}
                   </Text>
-                  <Text style={styles.notificationMessage}>{item.message}</Text>
+                  <Text style={styles.notificationMessage} numberOfLines={2}>
+                    {item.message}
+                  </Text>
+                  {isCancelada && (
+                    <Text style={styles.tapHint}>Toque para ver o motivo completo →</Text>
+                  )}
                   <Text style={styles.timeText}>{formatNotificationDate(item.created_at)}</Text>
                 </View>
 

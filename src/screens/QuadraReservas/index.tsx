@@ -24,6 +24,7 @@ type Reserva = {
   hora_inicio: string;
   hora_fim: string;
   status: string;
+  motivo_cancelamento?: string | null;
   checkin_at?: string | null;
   checkout_at?: string | null;
   created_at: string;
@@ -261,6 +262,15 @@ export default function QuadraReservas() {
                         Check-out: {new Date(item.checkout_at).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
                       </Text>
                     )}
+                  </View>
+                )}
+
+                {item.status === "cancelada" && item.motivo_cancelamento && (
+                  <View style={styles.motivoContainer}>
+                    <Ionicons name="chatbox-outline" size={13} color="#ff8080" />
+                    <Text style={styles.motivoText} numberOfLines={2}>
+                      {item.motivo_cancelamento}
+                    </Text>
                   </View>
                 )}
 

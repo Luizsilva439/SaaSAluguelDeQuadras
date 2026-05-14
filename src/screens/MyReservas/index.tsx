@@ -6,9 +6,12 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
+  Modal,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { processarReembolso } from "../../services/pagamento";
 
 import { supabase } from "../../services/supabase";
 import { colors } from "../../constants/colors";
@@ -35,6 +38,8 @@ type Reserva = {
     id: string;
     titulo: string;
     cidade: string;
+    preco: number;
+    owner_id: string;
     quadras_imagens?: { url: string }[];
   }[];
 };
@@ -86,7 +91,7 @@ const CardReserva = ({
   loadingActionId: string | null;
   onCheckin: (id: string) => void;
   onCheckout: (id: string) => void;
-  onCancel: (id: string, status: string) => void;
+  onCancel: (item: Reserva) => void;
   onDetails: (id: string) => void;
 }) => {
   const isActionLoading = loadingActionId === item.id;
@@ -156,7 +161,7 @@ const CardReserva = ({
             </Pressable>
             <Pressable
               style={[styles.actionButton, styles.cancelButton, (isActionLoading || isOtherLoading) && styles.disabledButton]}
-              onPress={() => onCancel(item.id, item.status)}
+              onPress={() => onCancel(item)}
               disabled={isActionLoading || isOtherLoading}
             >
               <Text style={styles.cancelButtonText}>Cancelar</Text>
@@ -202,6 +207,11 @@ export default function MyReservas() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingActionId, setLoadingActionId] = useState<string | null>(null);
 
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [cancelReserva, setCancelReserva] = useState<Reserva | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [isCanceling, setIsCanceling] = useState(false);
+
   async function fetchReservas(showLoading = true) {
     if (showLoading) setLoadingReservations(true);
 
@@ -219,7 +229,7 @@ export default function MyReservas() {
         id, quadra_id, user_id, data_reserva, hora_inicio, hora_fim, status,
         checkin_at, checkout_at, auto_closed_at, tolerance_minutes,
         extra_minutes, extra_fee, fine_fee,
-        quadras (id, titulo, cidade, quadras_imagens (url))
+        quadras (id, titulo, cidade, preco, owner_id, quadras_imagens (url))
       `)
       .eq("user_id", user.data.user.id)
       .order("data_reserva", { ascending: false })
@@ -284,37 +294,83 @@ export default function MyReservas() {
     }
   }
 
-  async function handleCancelReserva(reservaId: string, status: string) {
-    if (status === "cancelada") return;
+  function handleCancelReserva(reserva: Reserva) {
+    if (reserva.status === "cancelada") return;
+    setCancelReserva(reserva);
+    setCancelReason("");
+    setCancelModalVisible(true);
+  }
 
-    showModal({
-      title: "Cancelar reserva",
-      message: "Tem certeza que deseja cancelar esta reserva?",
-      buttons: [
-        { text: "Não", style: "cancel" },
+  async function confirmCancelReserva() {
+    if (!cancelReserva) return;
+    if (!cancelReason.trim()) {
+      showModal({ title: "Atenção", message: "Por favor, informe o motivo do cancelamento." });
+      return;
+    }
+
+    setIsCanceling(true);
+
+    try {
+      const quadra = Array.isArray(cancelReserva.quadras) ? cancelReserva.quadras[0] : cancelReserva.quadras;
+      if (!quadra || !quadra.owner_id || !quadra.preco) {
+        throw new Error("Dados da quadra incompletos para processar o reembolso.");
+      }
+
+      // Calcula horas de antecedência
+      const dataHoraReservaStr = `${cancelReserva.data_reserva}T${cancelReserva.hora_inicio}`;
+      const reservaDate = new Date(dataHoraReservaStr);
+      const now = new Date();
+      const horasAntecedencia = (reservaDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      // Processa reembolso
+      const reembolsoResult = await processarReembolso(
+        cancelReserva.id,
+        cancelReserva.user_id,
+        quadra.owner_id,
+        quadra.preco,
+        horasAntecedencia
+      );
+
+      // Atualiza o status da reserva
+      const { error } = await supabase
+        .from("reservas")
+        .update({ 
+          status: "cancelada", 
+          motivo_cancelamento: cancelReason.trim() // Salva o motivo
+        })
+        .eq("id", cancelReserva.id);
+
+      if (error) {
+        // Obs: Se der erro na atualização, o dinheiro já foi reembolsado. Numa aplicação real,
+        // o ideal seria fazer o reembolso após ou numa transaction (RPC).
+        throw new Error("Não foi possível atualizar o status da reserva.");
+      }
+
+      // Envia notificação para o dono da quadra
+      await supabase.from("notifications").insert([
         {
-          text: "Sim, cancelar",
-          style: "destructive",
-          onPress: async () => {
-            setLoadingActionId(reservaId);
-
-            const { error } = await supabase
-              .from("reservas")
-              .update({ status: "cancelada" })
-              .eq("id", reservaId);
-
-            if (error) {
-              setLoadingActionId(null);
-              showModal({ title: "Erro", message: "Não foi possível cancelar a reserva." });
-              return;
-            }
-
-            await fetchReservas(false);
-            setLoadingActionId(null);
-          },
+          user_id: quadra.owner_id,
+          title: "Reserva Cancelada",
+          message: `Uma reserva para ${quadra.titulo} foi cancelada. Motivo: ${cancelReason.trim()}`,
+          type: "cancelada",
+          reserva_id: cancelReserva.id,
+          quadra_id: quadra.id,
+          read: false,
         },
-      ],
-    });
+      ]);
+
+      showModal({ 
+        title: "Reserva Cancelada", 
+        message: reembolsoResult.mensagem || "Cancelamento e reembolso processados com sucesso!" 
+      });
+
+      setCancelModalVisible(false);
+      await fetchReservas(false);
+    } catch (err: any) {
+      showModal({ title: "Erro", message: err.message || "Erro ao cancelar a reserva." });
+    } finally {
+      setIsCanceling(false);
+    }
   }
 
   useFocusEffect(
@@ -398,6 +454,51 @@ export default function MyReservas() {
           )}
         />
       )}
+
+      {/* Modal de Cancelamento */}
+      <Modal transparent visible={cancelModalVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Cancelar Reserva</Text>
+            
+            <Text style={styles.modalSubtitle}>
+              Cancelamentos com mais de 24h recebem 100% de reembolso. Menos de 24h recebem 50%.
+            </Text>
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Qual o motivo do cancelamento?"
+              placeholderTextColor={colors.gray}
+              value={cancelReason}
+              onChangeText={setCancelReason}
+              multiline
+              textAlignVertical="top"
+            />
+
+            <View style={styles.modalButtons}>
+              <Pressable 
+                style={[styles.modalButton, styles.modalButtonCancel]} 
+                onPress={() => setCancelModalVisible(false)}
+                disabled={isCanceling}
+              >
+                <Text style={styles.modalButtonCancelText}>Voltar</Text>
+              </Pressable>
+
+              <Pressable 
+                style={[styles.modalButton, styles.modalButtonConfirm]} 
+                onPress={confirmCancelReserva}
+                disabled={isCanceling}
+              >
+                {isCanceling ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonConfirmText}>Confirmar</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../../constants/colors";
 import { styles } from "./stylesQuadraInfo";
@@ -10,6 +10,7 @@ type Props = {
   preco: number;
   endereco: string;
   tipoEsporte: string;
+  onContact?: () => void;
 };
 
 export default function QuadraInfo({
@@ -18,6 +19,7 @@ export default function QuadraInfo({
   preco,
   endereco,
   tipoEsporte,
+  onContact,
 }: Props) {
   return (
     <View style={styles.headerRow}>
@@ -35,6 +37,16 @@ export default function QuadraInfo({
           <Ionicons name="football-outline" size={16} color={colors.primary} />
           <Text style={styles.ratingText}>{tipoEsporte}</Text>
         </View>
+
+        {onContact && (
+          <Pressable 
+            style={styles.whatsappButton} 
+            onPress={onContact}
+          >
+            <Ionicons name="logo-whatsapp" size={16} color="#fff" />
+            <Text style={styles.whatsappText}>Falar com proprietário</Text>
+          </Pressable>
+        )}
       </View>
 
       <View style={styles.priceBox}>

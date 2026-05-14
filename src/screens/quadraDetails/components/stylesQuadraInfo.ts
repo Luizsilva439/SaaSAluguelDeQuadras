@@ -54,4 +54,22 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
   },
+
+  whatsappButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#25D366",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 12,
+    alignSelf: "flex-start",
+    gap: 6,
+  },
+
+  whatsappText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
 });

@@ -540,6 +540,21 @@ Pode confirmar pra mim?`;
             preco={quadra.preco}
             endereco={quadra.endereco}
             tipoEsporte={quadra.tipo_esporte}
+            telefone={quadra.telefone}
+            onContact={() => {
+              try {
+                if (!quadra.telefone) {
+                  showModal({ title: "Aviso", message: "Esta quadra não possui telefone cadastrado." });
+                  return;
+                }
+                const message = `Olá! Gostaria de tirar umas dúvidas sobre a quadra *${quadra.titulo}*.`;
+                sendWhatsAppMessage(quadra.telefone, message).catch(() => {
+                  showModal({ title: "Erro", message: "Não foi possível abrir o WhatsApp." });
+                });
+              } catch (err) {
+                showModal({ title: "Erro", message: "Não foi possível abrir o WhatsApp." });
+              }
+            }}
           />
 
           <DateSelector

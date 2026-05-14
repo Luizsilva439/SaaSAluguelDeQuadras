@@ -212,4 +212,25 @@ export const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.5,
   },
+
+  motivoContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
+    marginTop: 10,
+    marginBottom: 4,
+    backgroundColor: "rgba(255, 82, 82, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 82, 82, 0.2)",
+    borderRadius: 8,
+    padding: 10,
+  },
+
+  motivoText: {
+    color: "#ff8080",
+    fontSize: 12,
+    flex: 1,
+    lineHeight: 17,
+    fontStyle: "italic",
+  },
 });

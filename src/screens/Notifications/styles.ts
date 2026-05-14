@@ -119,6 +119,14 @@ export const styles = StyleSheet.create({
     fontSize: 11,
   },
 
+  tapHint: {
+    color: "#ff8080",
+    fontSize: 11,
+    marginTop: 4,
+    marginBottom: 2,
+    fontStyle: "italic",
+  },
+
   unreadDot: {
     width: 10,
     height: 10,

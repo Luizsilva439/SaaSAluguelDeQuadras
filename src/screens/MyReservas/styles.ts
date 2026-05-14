@@ -242,4 +242,84 @@ export const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.5,
   },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+
+  modalContent: {
+    width: "100%",
+    maxWidth: 360,
+    backgroundColor: colors.secondary,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#2a5b4d",
+  },
+
+  modalTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+
+  modalSubtitle: {
+    color: colors.gray,
+    fontSize: 13,
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+
+  modalInput: {
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 10,
+    color: colors.text,
+    minHeight: 80,
+    padding: 12,
+    fontSize: 14,
+    marginBottom: 20,
+  },
+
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+
+  modalButton: {
+    flex: 1,
+    height: 46,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+
+  modalButtonCancel: {
+    backgroundColor: "transparent",
+    borderColor: "#2a5b4d",
+  },
+
+  modalButtonCancelText: {
+    color: colors.text,
+    fontWeight: "800",
+    fontSize: 14,
+  },
+
+  modalButtonConfirm: {
+    backgroundColor: "rgba(255, 82, 82, 0.15)",
+    borderColor: "rgba(255, 82, 82, 0.4)",
+  },
+
+  modalButtonConfirmText: {
+    color: "#ff6666",
+    fontWeight: "800",
+    fontSize: 14,
+  },
 });
